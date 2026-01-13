@@ -9,6 +9,7 @@ public class Channel extends BaseEntity{
 
     public void updateChannelInfo(String newChannelName){
         this.channelName = newChannelName;
+        super.setUpdatedAt(System.currentTimeMillis());
     }
 
     public Channel(String channelName) {

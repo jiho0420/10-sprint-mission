@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ChannelService {
-    void createChannel(Channel channelName);
+    Channel createChannel(String channelName);
 
     void deleteChannel(UUID id);
 
     Channel findChannelById(UUID id);
     List<Channel> findAllChannels();
 
-    Channel updateChannel(UUID id, Channel channelName);
+    Channel updateChannel(UUID id, String channelName);
 
 
 }

@@ -17,8 +17,12 @@ public class User extends BaseEntity {
         return email;
     }
 
-    public void updateUserInfo(String newUsername, String newEmail){
+    public void updateUsername(String newUsername){
         this.username = newUsername;
+        this.setUpdatedAt(System.currentTimeMillis());
+    }
+
+    public void updateEmail(String newEmail){
         this.email = newEmail;
         this.setUpdatedAt(System.currentTimeMillis());
     }

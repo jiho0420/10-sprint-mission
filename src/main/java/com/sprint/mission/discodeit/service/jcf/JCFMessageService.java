@@ -28,7 +28,6 @@ public class JCFMessageService implements MessageService {
         User user = userService.findUserById(userId);
 
         Message newMessage = new Message(content, channel, user);
-
         messageList.add(newMessage);
 
         return newMessage;
@@ -48,22 +47,22 @@ public class JCFMessageService implements MessageService {
         return messageList.stream()
                 .filter(msg -> msg.getId().equals(id))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new IllegalArgumentException("해당 메시지 없음"));
     }
 
-    public void updateMessage(UUID id, String newContent){
+    public Message updateMessage(UUID id, String newContent){
         Message targetMessage = findMessageById(id);
-        if(targetMessage != null){
-            targetMessage.updateContent(newContent);
-            System.out.println("메시지가 수정되었습니다");
-        }else{
-            System.out.println("수정할 메시지가 없습니다");
-        }
+
+        targetMessage.updateContent(newContent);
+        System.out.println("메시지가 수정되었습니다");
+
+        return targetMessage;
     }
 
     public void deleteMessage(UUID id){
-        messageList.removeIf(msg -> msg.getId().equals(id));
-        System.out.println("메시지가 삭제되었습니다");
+        Message targetMessage = findMessageById(id);
+        messageList.remove(targetMessage);
+        System.out.println("메시지 삭제 완료: " + targetMessage.getContent());
     }
 
 }

@@ -13,10 +13,13 @@ public class JCFChannelService implements ChannelService {
     public JCFChannelService(){
         this.channelList = new ArrayList<>();
     }
+
     @Override
-    public void createChannel(Channel channel) {
+    public Channel createChannel(String channelName) {
+        Channel channel = new Channel(channelName);
         channelList.add(channel);
         System.out.println(channel.getChannelName() + "채널 생성이 완료되었습니다.");
+        return channel;
     }
 
     @Override
@@ -38,11 +41,9 @@ public class JCFChannelService implements ChannelService {
         channelList.remove(targetChannel);
     }
 
-    public Channel updateChannel(UUID id, Channel channelName){
+    public Channel updateChannel(UUID id, String channelName){
         Channel targetChannel = findChannelById(id); // 예외 처리가 구현되어있는 findChannelById(id) 사용
-
-        targetChannel.updateChannelInfo(channelName.getChannelName());
+        targetChannel.updateChannelInfo(channelName);
         return targetChannel;
     }
-
 }

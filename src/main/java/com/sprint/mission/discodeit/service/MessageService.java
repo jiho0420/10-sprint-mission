@@ -9,7 +9,7 @@ public interface MessageService {
     Message createMessage(String content, UUID channelId, UUID userId);
     void deleteMessage(UUID id);
     Message findMessageById(UUID id);
-    void updateMessage(UUID id, String newContent);
+    Message updateMessage(UUID id, String newContent);
     List<Message> findAllMessages();
     List<Message> findMessagesByChannelId(UUID channelId);
 }
