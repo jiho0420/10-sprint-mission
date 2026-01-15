@@ -48,10 +48,8 @@ public class JCFChannelService implements ChannelService {
     public void deleteChannel(UUID id){
         Channel targetChannel = findChannelByChannelId(id);
 
-        for (User participant : targetChannel.getParticipants()) {
-            participant.getMyChannels().remove(targetChannel);
-        }
-
+        targetChannel.getParticipants()
+                        .forEach(user -> user.getMyChannels().remove(targetChannel));
         channelMap.remove(id);
     }
 
@@ -66,12 +64,15 @@ public class JCFChannelService implements ChannelService {
         Channel targetChannel = findChannelByChannelId(channelID);
         User targetUser = userService.findUserById(userID);
 
-        boolean isAlreadyExist = targetChannel.getParticipants().stream()
-                        .anyMatch(participant -> participant.getId().equals(targetUser.getId()));
+        targetChannel.getParticipants().stream()
+                .filter(participant -> participant.getId().equals(targetUser.getId()))
+                .findAny()
+                .ifPresent(participant -> {
+                    throw new IllegalArgumentException("이미 채널에 참여중인 사용자입니다.");
+                });
 
-        if(isAlreadyExist) {
-            throw new IllegalArgumentException("이미 채널에 참여중인 사용자입니다.");
-        }
+        targetChannel.getParticipants().add(targetUser);
+        targetUser.getMyChannels().add(targetChannel);
 
         targetChannel.getParticipants().add(targetUser);
         targetUser.getMyChannels().add(targetChannel);
