@@ -13,4 +13,6 @@ public interface UserRepository {
     User findById(UUID id);
 
     List<User> findAll();
+
+    List<User> findByChannelId(UUID channelId);
 }

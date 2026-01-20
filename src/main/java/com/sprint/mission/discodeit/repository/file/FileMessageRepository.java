@@ -11,15 +11,15 @@ public class FileMessageRepository implements MessageRepository {
     private Map<UUID, Message> messageMap;
 
     public FileMessageRepository(){
-        if (file.exists()) {
-            load();
-        } else {
-            this.messageMap = new HashMap<>();
-        }
+        this.messageMap = new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")
     public void load(){
+        if(!file.exists()){
+            this.messageMap = new HashMap<>();
+            return;
+        }
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             this.messageMap = (Map<UUID, Message>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -39,6 +39,7 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Message save(Message message) {
+        load();
         messageMap.put(message.getId(), message);
         saveFile(); // 변경 사항 파일 반영
         return message;
@@ -46,22 +47,26 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Message findById(UUID id) {
+        load();
         return messageMap.get(id);
     }
 
     @Override
     public List<Message> findAll() {
+        load();
         return new ArrayList<>(messageMap.values());
     }
 
     @Override
     public void delete(UUID id) {
+        load();
         messageMap.remove(id);
         saveFile();
     }
 
     @Override
     public List<Message> findByChannelId(UUID channelId) {
+        load();
         return messageMap.values().stream()
                          .filter(message -> message.getChannel().getId().equals(channelId))
                          .toList();
@@ -69,6 +74,7 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public List<Message> findByUserId(UUID userId) {
+        load();
         return messageMap.values().stream()
                          .filter(message -> message.getUser().getId().equals(userId))
                          .toList();

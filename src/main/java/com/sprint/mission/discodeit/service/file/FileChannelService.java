@@ -2,6 +2,10 @@ package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -9,50 +13,20 @@ import java.io.*;
 import java.util.*;
 
 public class FileChannelService implements ChannelService {
-    private final File file = new File("channels.dat");
-    private Map<UUID, Channel> channelMap;
-    private final UserService userService;
-
-    public FileChannelService(UserService userService){
-        this.userService = userService;
-        if (file.exists()) {
-            load();
-        } else {
-            this.channelMap = new HashMap<>();
-        }
-    }
-
-    // 파일 읽기
-    @SuppressWarnings("unchecked")
-    private void load() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            this.channelMap = (Map<UUID, Channel>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            this.channelMap = new HashMap<>();
-        }
-    }
-
-    // 파일 쓰기
-    private void saveFile() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-            oos.writeObject(this.channelMap);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    private final ChannelRepository channelRepository = new FileChannelRepository();
+    private final UserRepository userRepository = new FileUserRepository();
 
     @Override
     public Channel createChannel(String channelName) {
         Channel channel = new Channel(channelName);
-        channelMap.put(channel.getId(), channel);
-        saveFile();
+        channelRepository.save(channel);
         System.out.println(channel.getChannelName() + "채널 생성이 완료되었습니다.");
         return channel;
     }
 
     @Override
     public Channel findChannelByChannelId(UUID id){
-        Channel channel = channelMap.get(id);
+        Channel channel = channelRepository.findById(id);
         if (channel == null) {
             throw new IllegalArgumentException("해당 채널이 없습니다.");
         }
@@ -61,56 +35,58 @@ public class FileChannelService implements ChannelService {
 
     @Override
     public List<Channel> findChannelByUserId(UUID userID){
-        User user = userService.findUserById(userID);
-        return new ArrayList<>(user.getMyChannels());
+        User user = userRepository.findById(userID);
+        return user.getMyChannels();
     }
 
     @Override
     public List<Channel> findAllChannels(){
-        return new ArrayList<>(channelMap.values());
+        return channelRepository.findAll();
     }
 
     @Override
     public void deleteChannel(UUID id){
         Channel targetChannel = findChannelByChannelId(id);
 
-        targetChannel.getParticipants()
-                     .forEach(user -> user.getMyChannels().remove(targetChannel));
-        channelMap.remove(id);
-        saveFile();
+        for (User user : targetChannel.getParticipants()) {
+            user.getMyChannels().remove(targetChannel);
+            userRepository.save(user);
+        }
+        channelRepository.delete(id);
     }
 
     public Channel updateChannel(UUID id, String channelName){
         Channel targetChannel = findChannelByChannelId(id);
         targetChannel.updateChannelInfo(channelName);
-        saveFile();
+        channelRepository.save(targetChannel);
         return targetChannel;
     }
 
     @Override
     public void joinChannel(UUID userID, UUID channelID) {
         Channel targetChannel = findChannelByChannelId(channelID);
-        User targetUser = userService.findUserById(userID);
+        User targetUser = userRepository.findById(userID);
 
-        targetChannel.getParticipants().stream()
-                     .filter(participant -> participant.getId().equals(targetUser.getId()))
-                     .findAny()
-                     .ifPresent(participant -> {
-                         throw new IllegalArgumentException("이미 채널에 참여중인 사용자입니다.");
-                     });
+        if(targetChannel.getParticipants().stream()
+                        .anyMatch(participant -> participant.getId().equals(userID))){
+            throw new IllegalArgumentException("이미 채널에 참여중인 사용자입니다.");
+        }
 
-        targetChannel.getParticipants().add(targetUser);
-        targetUser.getMyChannels().add(targetChannel);
+        targetChannel.addParticipant(targetUser); // 채널에 유저 추가
+        targetUser.getMyChannels().add(targetChannel); // 유저에 채널 추가
+
+        // 영속화
+        channelRepository.save(targetChannel);
+        userRepository.save(targetUser);
+
         System.out.println(targetUser.getUsername() + "님이 "
                 + targetChannel.getChannelName() + " 채널에 입장했습니다.");
-
-        saveFile();
     }
 
     @Override
     public void leaveChannel(UUID userID, UUID channelID) {
         Channel targetChannel = findChannelByChannelId(channelID);
-        User targetUser = userService.findUserById(userID);
+        User targetUser = userRepository.findById(userID);
 
         if (!targetChannel.getParticipants().contains(targetUser)) {
             throw new IllegalArgumentException("채널에 참여중이지 않습니다.");
@@ -119,6 +95,8 @@ public class FileChannelService implements ChannelService {
         targetChannel.getParticipants().remove(targetUser);
         targetUser.getMyChannels().remove(targetChannel);
 
-        saveFile();
+        // 영속화
+        channelRepository.save(targetChannel);
+        userRepository.save(targetUser);
     }
 }

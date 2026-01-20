@@ -11,15 +11,15 @@ public class FileChannelRepository implements ChannelRepository {
     private Map<UUID, Channel> channelMap;
 
     public FileChannelRepository() {
-        if (file.exists()) {
-            load();
-        } else {
-            this.channelMap = new HashMap<>();
-        }
+        this.channelMap = new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")
     private void load() {
+        if (!file.exists()) {
+            this.channelMap = new HashMap<>();
+            return;
+        }
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             this.channelMap = (Map<UUID, Channel>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -38,6 +38,7 @@ public class FileChannelRepository implements ChannelRepository {
 
     @Override
     public Channel save(Channel channel) {
+        load();
         channelMap.put(channel.getId(), channel);
         saveFile();
         return channel;
@@ -45,16 +46,19 @@ public class FileChannelRepository implements ChannelRepository {
 
     @Override
     public Channel findById(UUID id) {
+        load();
         return channelMap.get(id);
     }
 
     @Override
     public List<Channel> findAll() {
+        load();
         return new ArrayList<>(channelMap.values());
     }
 
     @Override
     public void delete(UUID id) {
+        load();
         channelMap.remove(id);
         saveFile();
     }

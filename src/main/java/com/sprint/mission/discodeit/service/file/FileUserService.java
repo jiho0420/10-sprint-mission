@@ -2,50 +2,24 @@ package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.*;
 import java.util.*;
 
 public class FileUserService implements UserService {
-    private final File file = new File("users.dat");
-    private Map<UUID, User> userMap;
-
-    public FileUserService() {
-        if (file.exists()) {
-            load();
-        } else {
-            this.userMap = new HashMap<>();
-        }
-    }
-
-    // 역직렬화
-    @SuppressWarnings("unchecked")
-    private void load() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            this.userMap = (Map<UUID, User>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("데이터 로드 중 오류가 발생" + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    // 직렬화
-    private void saveFile() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-            oos.writeObject(this.userMap);
-        } catch (IOException e) {
-            System.out.println("파일 저장 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    private final UserRepository userRepository = new FileUserRepository();
+    private final ChannelRepository channelRepository = new FileChannelRepository();
 
     @Override
     public User createUser(String username, String password, String email) {
         User newUser = new User(username, password, email);
-        userMap.put(newUser.getId(), newUser);
 
-        saveFile();
+        userRepository.save(newUser);
 
         System.out.println(username + "님 회원가입 완료되었습니다.");
         return newUser;
@@ -53,7 +27,7 @@ public class FileUserService implements UserService {
 
     @Override
     public User findUserById(UUID id) {
-        User user = userMap.get(id);
+        User user = userRepository.findById(id);
         if (user == null) {
             throw new IllegalArgumentException("해당 유저가 없습니다.");
         }
@@ -62,7 +36,7 @@ public class FileUserService implements UserService {
 
     @Override
     public List<User> findAllUsers() {
-        return new ArrayList<>(userMap.values());
+        return userRepository.findAll();
     }
 
     @Override
@@ -96,7 +70,7 @@ public class FileUserService implements UserService {
             System.out.println("이메일이 변경되었습니다: " + targetUser.getEmail());
         });
 
-        saveFile();
+        userRepository.save(targetUser);
 
         return targetUser;
     }
@@ -114,7 +88,7 @@ public class FileUserService implements UserService {
         User targetUser = findUserById(id);
         targetUser.updatePassword(newPassword);
 
-        saveFile();
+        userRepository.save(targetUser);
 
         return targetUser;
     }
@@ -125,20 +99,15 @@ public class FileUserService implements UserService {
 
         for (Channel channel : targetUser.getMyChannels()) {
             channel.getParticipants().remove(targetUser);
+            channelRepository.save(channel);
         }
-
-        userMap.remove(id);
-
-        saveFile();
+        userRepository.delete(id);
 
         System.out.println(targetUser.getUsername() + "님 삭제 완료되었습니다");
     }
 
     @Override
     public List<User> findParticipants(UUID channelID) {
-        return userMap.values().stream()
-                      .filter(user -> user.getMyChannels().stream()
-                                          .anyMatch(channel -> channel.getId().equals(channelID)))
-                      .toList();
+        return userRepository.findByChannelId(channelID);
     }
 }

@@ -9,9 +9,9 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.file.FileChannelService;
 import com.sprint.mission.discodeit.service.file.FileMessageService;
 import com.sprint.mission.discodeit.service.file.FileUserService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+//import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
+//import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+//import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,8 +26,8 @@ public class JavaApplication {
         System.out.println("========== 디스코드잇 서비스 테스트 시작 ==========\n");
 
         UserService userService = new FileUserService();
-        ChannelService channelService = new FileChannelService(userService);
-        MessageService messageService = new FileMessageService(userService, channelService);
+        ChannelService channelService = new FileChannelService();
+        MessageService messageService = new FileMessageService();
 
         // ========== User 기능 테스트 ==========
         System.out.println("========== User 기능 테스트 ==========\n");

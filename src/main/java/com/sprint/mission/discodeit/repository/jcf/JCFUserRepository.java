@@ -28,4 +28,12 @@ public class JCFUserRepository implements UserRepository {
     public List<User> findAll(){
         return new ArrayList<>(userMap.values());
     }
+
+    @Override
+    public List<User> findByChannelId(UUID channelId) {
+        return userMap.values().stream()
+                      .filter(user -> user.getMyChannels().stream()
+                                          .anyMatch(channel -> channel.getId().equals(channelId)))
+                      .toList();
+    }
 }
