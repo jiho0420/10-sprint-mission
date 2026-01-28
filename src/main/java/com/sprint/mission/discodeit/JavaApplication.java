@@ -19,13 +19,11 @@ import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 public class JavaApplication {
     static User setupUser(UserService userService) {
-        User user = userService.create("woody", "woody@codeit.com", "woody1234");
-        return user;
+        return userService.create("woody", "woody@codeit.com", "woody1234");
     }
 
     static Channel setupChannel(ChannelService channelService) {
-        Channel channel = channelService.create(ChannelType.PUBLIC, "공지", "공지 채널입니다.");
-        return channel;
+        return channelService.create(ChannelType.PUBLIC, "공지", "공지 채널입니다.");
     }
 
     static void messageCreateTest(MessageService messageService, Channel channel, User author) {
