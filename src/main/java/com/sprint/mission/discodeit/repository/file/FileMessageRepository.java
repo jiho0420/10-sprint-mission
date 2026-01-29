@@ -99,4 +99,20 @@ public class FileMessageRepository implements MessageRepository {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public Optional<Message> findLatestByChannelId(UUID channelId) {
+        return findAll().stream()
+                .filter(m -> m.getChannelId().equals(channelId))
+                .min((m1, m2) -> m2.getCreatedAt().compareTo(m1.getCreatedAt()));
+    }
+
+    @Override
+    public void deleteAllByChannelId(UUID channelId) {
+        List<UUID> idsToDelete = findAll().stream()
+                .filter(m -> m.getChannelId().equals(channelId))
+                .map(Message::getId)
+                .toList();
+        idsToDelete.forEach(this::deleteById);
+    }
 }

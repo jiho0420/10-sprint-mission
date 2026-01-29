@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class FileUploadDto {
+public class BinaryContentDto {
     @NotBlank(message = "파일 이름은 필수입니다.")
     private String fileName;
 

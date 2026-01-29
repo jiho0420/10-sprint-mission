@@ -1,7 +1,5 @@
 package com.sprint.mission.discodeit.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,5 +9,5 @@ public class UpdateUserRequest {
     private String username;
     private String email;
     private String password;
-    private FileUploadDto newProfileImage;
+    private BinaryContentDto newProfileImage;
 }

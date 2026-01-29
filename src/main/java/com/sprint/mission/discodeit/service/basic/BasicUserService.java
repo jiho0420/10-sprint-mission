@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.CreateUserRequest;
-import com.sprint.mission.discodeit.dto.FileUploadDto;
 import com.sprint.mission.discodeit.dto.UpdateUserRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -22,36 +22,20 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
+
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
     public UserDto create(CreateUserRequest request) {
-        if(userRepository.findAll()
-                .stream()
-                .anyMatch(user -> user.getUsername().equals(request.getUsername()))) {
-            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
-        }
-        if(userRepository.findAll()
-                .stream()
-                .anyMatch(user -> user.getEmail().equals(request.getEmail()))) {
-            throw new IllegalArgumentException("Email already exists: " + request.getEmail());
-        }
+
+        validateDuplicateUser(request.getUsername(), request.getEmail());
 
         User user = new User(request.getUsername(), request.getEmail(), request.getPassword());
 
-        if(request.getProfileImage() != null) {
-            FileUploadDto img = request.getProfileImage();
-            BinaryContent content = new BinaryContent(
-                    img.getFileName(),
-                    img.getContentType(),
-                    img.getSize(),
-                    img.getContents()
-            );
-            binaryContentRepository.save(content);
-            user.updateProfileImageId(content.getId());
-        }
+        uploadProfileImage(user, request.getProfileImage());
+
         userRepository.save(user);
 
         UserStatus status = new UserStatus(user.getId());
@@ -62,69 +46,83 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserDto find(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
-        boolean isOnline = userStatusRepository.findByUserId(userId)
-                .map(UserStatus::isOnline)
-                .orElse(false);
-
+        User user = getUserEntity(userId);
+        boolean isOnline = isUserOnline(userId);
         return new UserDto(user, isOnline);
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(user -> {
-                    boolean isOnline = userStatusRepository.findByUserId(user.getId())
-                            .map(UserStatus::isOnline)
-                            .orElse(false);
-                    return new UserDto(user, isOnline);
-                })
+                .map(user -> new UserDto(user, isUserOnline(user.getId())))
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto update(UUID userId, UpdateUserRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
+        User user = getUserEntity(userId);
+
         user.update(request.getUsername(), request.getEmail(), request.getPassword());
 
-        if(request.getNewProfileImage() != null) {
-            FileUploadDto img = request.getNewProfileImage();
-            BinaryContent content = new BinaryContent(
-                    img.getFileName(),
-                    img.getContentType(),
-                    img.getSize(),
-                    img.getContents()
-            );
-            binaryContentRepository.save(content);
-            user.updateProfileImageId(content.getId());
+        if (request.getNewProfileImage() != null) {
+            uploadProfileImage(user, request.getNewProfileImage());
         }
+
         userRepository.save(user);
-        boolean isOnline = userStatusRepository.findByUserId(user.getId())
-                .map(UserStatus::isOnline)
-                .orElse(false);
-        return new UserDto(user, isOnline);
+        return new UserDto(user, isUserOnline(userId));
     }
 
     @Override
     public void delete(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException(
-                        "User with id " + userId + " not found")
-                );
-        // 유저 상태 삭제
+        User user = getUserEntity(userId);
+
         userStatusRepository.findByUserId(userId)
                 .ifPresent(status -> userStatusRepository.deleteById(status.getId()));
-        userRepository.deleteById(userId);
 
-        // 유저 프로필 사진 삭제
-        if(user.getProfileImageId() != null) {
+        if (user.getProfileImageId() != null) {
             binaryContentRepository.deleteById(user.getProfileImageId());
         }
 
         // 유저 삭제
         userRepository.deleteById(userId);
+    }
 
+    // 유저 엔티티 조회
+    private User getUserEntity(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
+    }
+
+    // 온라인 상태 확인
+    private boolean isUserOnline(UUID userId) {
+        return userStatusRepository.findByUserId(userId)
+                .map(UserStatus::isOnline)
+                .orElse(false);
+    }
+
+    // 프로필 이미지 업로드 및 유저 정보 업데이트
+    private void uploadProfileImage(User user, BinaryContentDto contentDto) {
+        if (contentDto == null) return;
+
+        BinaryContent content = new BinaryContent(
+                contentDto.getFileName(),
+                contentDto.getContentType(),
+                contentDto.getSize(),
+                contentDto.getContents()
+        );
+        binaryContentRepository.save(content);
+        user.updateProfileImageId(content.getId());
+    }
+
+    // 중복 가입 검증
+    private void validateDuplicateUser(String username, String email) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new IllegalArgumentException("Username already exists: " + username);
+        }
+        boolean emailExists = userRepository.findAll().stream()
+                .anyMatch(u -> u.getEmail().equals(email));
+        if (emailExists) {
+            throw new IllegalArgumentException("Email already exists: " + email);
+        }
     }
 }
