@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.UpdateMessageRequestDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -27,6 +28,7 @@ public class BasicMessageService implements MessageService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final MessageMapper messageMapper;
 
     @Override
     public MessageDto create(CreateMessageRequestDto request) {
@@ -46,13 +48,13 @@ public class BasicMessageService implements MessageService {
         );
         messageRepository.save(message);
 
-        return new MessageDto(message);
+        return messageMapper.toDto(message);
     }
 
     @Override
     public MessageDto find(UUID messageId) {
         Message message = getMessageEntity(messageId);
-        return new MessageDto(message);
+        return messageMapper.toDto(message);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class BasicMessageService implements MessageService {
         validateChannelExist(channelId);
 
         return messageRepository.findAllByChannelId(channelId).stream()
-                .map(MessageDto::new)
+                .map(messageMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -71,7 +73,7 @@ public class BasicMessageService implements MessageService {
         message.update(request.getContent());
         messageRepository.save(message);
 
-        return new MessageDto(message);
+        return messageMapper.toDto(message);
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -28,6 +29,7 @@ public class BasicChannelService implements ChannelService {
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final ChannelMapper channelMapper;
 
     @Override
     public ChannelDto createPublic(CreatePublicChannelRequestDto dto) {
@@ -49,13 +51,13 @@ public class BasicChannelService implements ChannelService {
             }
         }
 
-        return convertToDto(channel);
+        return channelMapper.toDto(channel);
     }
 
     @Override
     public ChannelDto find(UUID channelId) {
         Channel channel = getChannelEntity(channelId);
-        return convertToDto(channel);
+        return channelMapper.toDto(channel);
     }
 
     @Override
@@ -69,7 +71,7 @@ public class BasicChannelService implements ChannelService {
                     return readStatusRepository.findAllByUserId(userId).stream()
                             .anyMatch(rs -> rs.getChannelId().equals(channel.getId()));
                 })
-                .map(this::convertToDto)
+                .map(channelMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -89,7 +91,7 @@ public class BasicChannelService implements ChannelService {
         channel.update(dto.getName(), dto.getDescription());
         channelRepository.save(channel);
 
-        return convertToDto(channel);
+        return channelMapper.toDto(channel);
     }
 
     @Override
@@ -104,26 +106,6 @@ public class BasicChannelService implements ChannelService {
     private Channel getChannelEntity(UUID channelId) {
         return channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + channelId));
-    }
-
-    private ChannelDto convertToDto(Channel channel) {
-        // 최신 메시지 시간 조회
-        Instant lastMessageAt = messageRepository.findLatestByChannelId(channel.getId())
-                .map(Message::getCreatedAt)
-                .orElse(null);
-
-        // 참여자 목록 조회 (비공개 채널)
-        List<UUID> participantIds;
-        if (channel.getType() == ChannelType.PRIVATE) {
-            participantIds = readStatusRepository.findAllByChannelId(channel.getId())
-                    .stream()
-                    .map(ReadStatus::getUserId)
-                    .collect(Collectors.toList());
-        } else {
-            participantIds = Collections.emptyList();
-        }
-
-        return new ChannelDto(channel, lastMessageAt, participantIds);
     }
 
 }

@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -26,6 +27,7 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto create(CreateUserRequest request) {
@@ -41,20 +43,19 @@ public class BasicUserService implements UserService {
         UserStatus status = new UserStatus(user.getId());
         userStatusRepository.save(status);
 
-        return new UserDto(user, status.isOnline());
+        return userMapper.toDto(user);
     }
 
     @Override
     public UserDto find(UUID userId) {
         User user = getUserEntity(userId);
-        boolean isOnline = isUserOnline(userId);
-        return new UserDto(user, isOnline);
+        return userMapper.toDto(user);
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(user -> new UserDto(user, isUserOnline(user.getId())))
+                .map(userMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -69,7 +70,7 @@ public class BasicUserService implements UserService {
         }
 
         userRepository.save(user);
-        return new UserDto(user, isUserOnline(userId));
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -93,12 +94,6 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
     }
 
-    // 온라인 상태 확인
-    private boolean isUserOnline(UUID userId) {
-        return userStatusRepository.findByUserId(userId)
-                .map(UserStatus::isOnline)
-                .orElse(false);
-    }
 
     // 프로필 이미지 업로드 및 유저 정보 업데이트
     private void uploadProfileImage(User user, BinaryContentDto contentDto) {
