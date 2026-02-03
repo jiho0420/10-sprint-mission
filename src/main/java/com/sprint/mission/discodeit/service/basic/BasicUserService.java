@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -43,6 +44,12 @@ public class BasicUserService implements UserService {
         userStatusRepository.save(status);
 
         return userMapper.toDto(user);
+    }
+
+    @Override
+    public Optional<UserDto> findById(UUID userId) {
+        return userRepository.findById(userId)
+                .map(userMapper::toDto);
     }
 
     @Override

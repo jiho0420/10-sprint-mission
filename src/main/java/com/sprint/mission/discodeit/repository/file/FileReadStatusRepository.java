@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
@@ -15,13 +15,13 @@ import java.util.UUID;
 
 @Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
-public class FileUserStatusRepository implements UserStatusRepository {
+public class FileReadStatusRepository implements ReadStatusRepository {
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
-    public FileUserStatusRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
-        this.DIRECTORY = Path.of(fileDirectory, UserStatus.class.getSimpleName());
-        if (Files.notExists(DIRECTORY)) {
+    public FileReadStatusRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory){
+        this.DIRECTORY = Path.of(fileDirectory, ReadStatus.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)){
             try {
                 Files.createDirectories(DIRECTORY);
             } catch (IOException e) {
@@ -29,52 +29,43 @@ public class FileUserStatusRepository implements UserStatusRepository {
             }
         }
     }
-
+    
     private Path resolvePath(UUID id) {
         return DIRECTORY.resolve(id + EXTENSION);
     }
-
+    
     @Override
-    public UserStatus save(UserStatus userStatus) {
-        // userId로 저장하여 파일을 효율적으로 찾을 수 있음
-        Path path = resolvePath(userStatus.getUserId());
+    public ReadStatus save(ReadStatus readStatus) {
+        Path path = resolvePath(readStatus.getId());
         try (
                 FileOutputStream fos = new FileOutputStream(path.toFile());
                 ObjectOutputStream oos = new ObjectOutputStream(fos)
         ) {
-            oos.writeObject(userStatus);
+            oos.writeObject(readStatus);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return userStatus;
+        return readStatus;
     }
-
+    
     @Override
-    public Optional<UserStatus> findByUserId(UUID userId) {
-        UserStatus userStatusNullable = null;
-        Path path = resolvePath(userId);
+    public Optional<ReadStatus> findById(UUID id) {
+        ReadStatus readStatusNullable = null;
+        Path path = resolvePath(id);
         if (Files.exists(path)) {
             try (
                     FileInputStream fis = new FileInputStream(path.toFile());
-                    ObjectInputStream ois = new ObjectInputStream(fis)
-            ) {
-                userStatusNullable = (UserStatus) ois.readObject();
+                    ObjectInputStream ois = new ObjectInputStream(fis);
+            ){
+                readStatusNullable = (ReadStatus) ois.readObject(); 
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
-        return Optional.ofNullable(userStatusNullable);
+        return Optional.ofNullable(readStatusNullable);
     }
 
-    @Override
-    public Optional<UserStatus> findById(UUID id) {
-        return findAll().stream()
-                .filter(status -> status.getId().equals(id))
-                .findFirst();
-    }
-
-    @Override
-    public List<UserStatus> findAll() {
+    private List<ReadStatus> findAll() {
         try {
             return Files.list(DIRECTORY)
                     .filter(path -> path.toString().endsWith(EXTENSION))
@@ -83,7 +74,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
                                 FileInputStream fis = new FileInputStream(path.toFile());
                                 ObjectInputStream ois = new ObjectInputStream(fis)
                         ) {
-                            return (UserStatus) ois.readObject();
+                            return (ReadStatus) ois.readObject();
                         } catch (IOException | ClassNotFoundException e) {
                             throw new RuntimeException(e);
                         }
@@ -95,15 +86,34 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     @Override
-    public void deleteById(UUID id){
-        findById(id).ifPresent(status -> {
-            Path path = resolvePath(status.getUserId());
-            try {
-                Files.delete(path);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public List<ReadStatus> findAllByUserId(UUID userId){
+        return findAll().stream()
+                .filter(user -> user.getUserId().equals(userId))
+                .toList();
     }
 
+    @Override
+    public List<ReadStatus> findAllByChannelId(UUID channelId){
+        return findAll().stream()
+                .filter(channel -> channel.getChannelId().equals(channelId))
+                .toList();
+    }
+
+    @Override
+    public void deleteById(UUID id){
+        Path path = resolvePath(id);
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteAllByChannelId(UUID channelId){
+        List<UUID> idsToDelete = findAllByChannelId(channelId).stream()
+                .map(ReadStatus::getId)
+                .toList();
+        idsToDelete.forEach(this::deleteById);
+    }
 }
