@@ -30,13 +30,13 @@ public class BasicMessageService implements MessageService {
     private final MessageMapper messageMapper;
 
     @Override
-    public MessageDto create(CreateMessageRequestDto request) {
+    public MessageDto create(CreateMessageRequestDto request, List<BinaryContentDto> attachments) {
 
         validateChannelExist(request.getChannelId());
         validateAuthorExist(request.getAuthorId());
 
         // 첨부파일 저장 및 ID 목록 생성
-        List<UUID> attachmentIds = processAttachments(request.getAttachments());
+        List<UUID> attachmentIds = processAttachments(attachments);
 
         // 메시지 생성 및 저장
         Message message = new Message(
