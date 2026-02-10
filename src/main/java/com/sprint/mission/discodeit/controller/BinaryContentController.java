@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.BinaryContentDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -15,13 +16,20 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/binary-contents")
+@RequestMapping("/api/binaryContent")
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
+
+    @RequestMapping(method = RequestMethod.GET,value = "/find")
+    public ResponseEntity<BinaryContent> find(@RequestParam UUID contentId){
+        BinaryContent content = binaryContentService.findEntity(contentId);
+        return ResponseEntity.ok(content);
+    }
 
     // 단건 조회(다운로드)
     @RequestMapping(method = RequestMethod.GET, value = "/{contentId}")
     public ResponseEntity<?> download(@PathVariable UUID contentId){
+        // 단건 조회
         BinaryContentDto binaryContentDto = binaryContentService.find(contentId);
         // 한글 깨짐 방지
         String encodedFileName = new String(binaryContentDto.getFileName()

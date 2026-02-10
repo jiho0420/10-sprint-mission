@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
     private final UserStatusService userStatusService;
@@ -30,9 +31,9 @@ public class UserController {
         return userService.find(userId);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public List<UserDto> findAll(){
-        return userService.findAll();
+    @RequestMapping(method = RequestMethod.GET, value = "/findAll")
+    public ResponseEntity<List<UserDto>> findAll(){
+        return ResponseEntity.ok(userService.findAll());
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value = "/{userId}")
