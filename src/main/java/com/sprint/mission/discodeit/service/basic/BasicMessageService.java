@@ -73,7 +73,7 @@ public class BasicMessageService implements MessageService {
     public MessageDto update(UUID messageId, UpdateMessageRequestDto request) {
         Message message = getMessageEntity(messageId);
 
-        message.update(request.getContent());
+        message.update(request.getNewContent());
         messageRepository.save(message);
 
         return messageMapper.toDto(message);
@@ -123,7 +123,7 @@ public class BasicMessageService implements MessageService {
                     dto.getFileName(),
                     dto.getContentType(),
                     dto.getSize(),
-                    dto.getContents()
+                    dto.getBytes()
             );
             binaryContentRepository.save(content);
             attachmentIds.add(content.getId());

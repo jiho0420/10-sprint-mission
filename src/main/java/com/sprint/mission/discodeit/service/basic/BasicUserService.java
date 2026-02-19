@@ -69,7 +69,7 @@ public class BasicUserService implements UserService {
     public UserDto update(UUID userId, UpdateUserRequestDto request) {
         User user = getUserEntity(userId);
 
-        user.update(request.getUsername(), request.getEmail(), request.getPassword());
+        user.update(request.getNewUsername(), request.getNewEmail(), request.getNewPassword());
 
         if (request.getNewProfileImage() != null) {
             uploadProfileImage(user, request.getNewProfileImage());
@@ -110,7 +110,7 @@ public class BasicUserService implements UserService {
                 contentDto.getFileName(),
                 contentDto.getContentType(),
                 contentDto.getSize(),
-                contentDto.getContents()
+                contentDto.getBytes()
         );
         binaryContentRepository.save(content);
         user.updateProfileImageId(content.getId());

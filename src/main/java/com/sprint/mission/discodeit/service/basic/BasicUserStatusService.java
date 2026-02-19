@@ -61,14 +61,14 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
+    public UserStatusDto updateByUserId(UUID userId, UpdateUserStatusRequestDto request){
+        return processUpdate(userId, request);
+    }
+
+    @Override
+    // listener
     public UserStatusDto updateByUserId(UUID userId){
-        UserStatus userStatus = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("UserStatus not found with user id " + userId));
-
-        userStatus.updateLastActiveAt();
-        userStatusRepository.save(userStatus);
-
-        return userStatusMapper.toDto(userStatus);
+        return processUpdate(userId, null);
     }
 
     @Override
@@ -81,6 +81,19 @@ public class BasicUserStatusService implements UserStatusService {
     private UserStatus getUserStatusEntity(UUID userStatusId){
         return userStatusRepository.findById(userStatusId)
                 .orElseThrow(() -> new NoSuchElementException("UserStatus not found with id" + userStatusId));
+    }
+
+    private UserStatusDto processUpdate(UUID userId, UpdateUserStatusRequestDto request){
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new NoSuchElementException("UserStatus not found with user id " + userId));
+
+        if (request != null && request.getNewLastActiveAt() != null){
+            userStatus.setLastActiveAt(request.getNewLastActiveAt());
+        } else {
+            userStatus.updateLastActiveAt();
+        }
+        userStatusRepository.save(userStatus);
+        return userStatusMapper.toDto(userStatus);
     }
 }
 

@@ -37,7 +37,9 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelDto createPrivate(CreatePrivateChannelRequestDto dto) {
-        Channel channel = new Channel(ChannelType.PRIVATE, dto.getName(), null);
+        // 명세에 name이 없으므로 서버에서 기본 이름 자동 생성
+        String defaultName = "Private";
+        Channel channel = new Channel(ChannelType.PRIVATE, defaultName, null);
         channelRepository.save(channel);
 
         if (dto.getParticipantIds() != null) {
@@ -84,7 +86,7 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
         }
 
-        channel.update(dto.getName(), dto.getDescription());
+        channel.update(dto.getNewName(), dto.getNewDescription());
         channelRepository.save(channel);
 
         return channelMapper.toDto(channel);

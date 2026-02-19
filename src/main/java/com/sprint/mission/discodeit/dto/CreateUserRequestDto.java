@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Schema(name = "UserCreateRequest")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +24,8 @@ public class CreateUserRequestDto {
     @NotBlank(message = "비밀번호는 필수입니다.")
     private String password;
 
+    // 파일은 Multipart 파라미터로 받으므로, JSON 스키마에서는 숨김
+    @Schema(hidden = true)
     private BinaryContentDto profileImage;
 
 }

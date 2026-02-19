@@ -45,11 +45,11 @@ class DiscodeitApplicationTests {
         UserDto userB = userService.create(userReqB);
 
         // 검증
-        assertThat(userA.getUsername()).isEqualTo("woody");
-        assertThat(userA.getProfileImageId()).isNotNull(); // 프로필 이미지 저장 확인
-        assertThat(userA.isOnline()).isTrue(); // 온라인 확인
+        assertThat(userA.username()).isEqualTo("woody");
+        assertThat(userA.profileId()).isNotNull(); // 프로필 이미지 저장 확인
+        assertThat(userA.online()).isTrue(); // 온라인 확인
 
-        BinaryContentDto savedProfile = binaryContentService.find(userA.getProfileImageId());
+        BinaryContentDto savedProfile = binaryContentService.find(userA.profileId());
         assertThat(savedProfile.getFileName()).isEqualTo("avatar.png");
         System.out.println("✅ 유저 A 프로필 이미지 조회 검증 완료 (파일명: avatar.png)");
 
@@ -63,8 +63,8 @@ class DiscodeitApplicationTests {
         CreatePublicChannelRequestDto publicReq = new CreatePublicChannelRequestDto("잡담방", "떠드는 곳");
         ChannelDto publicChannel = channelService.createPublic(publicReq);
 
-        // 비공개 채널 (A, B 참여)
-        CreatePrivateChannelRequestDto privateReq = new CreatePrivateChannelRequestDto(List.of(userA.getId(), userB.getId()));
+        // 비공개 채널 (A, B 참여) - 명세에는 participantIds만 정의됨
+        CreatePrivateChannelRequestDto privateReq = new CreatePrivateChannelRequestDto(List.of(userA.id(), userB.id()));
         ChannelDto privateChannel = channelService.createPrivate(privateReq);
 
         // 검증
@@ -79,7 +79,7 @@ class DiscodeitApplicationTests {
         // ---------------------------------------------------------
         System.out.println("\n--- [Step 3] 메시지 전송 (첨부파일 포함) ---");
         BinaryContentDto fileDto = new BinaryContentDto("homework.doc", "application/msword", 1024, "doc_data".getBytes());
-        CreateMessageRequestDto msgReq = new CreateMessageRequestDto("숙제 제출합니다.", privateChannel.getId(), userA.getId(), List.of(fileDto));
+        CreateMessageRequestDto msgReq = new CreateMessageRequestDto("숙제 제출합니다.", privateChannel.getId(), userA.id(), List.of(fileDto));
 
         MessageDto sentMsg = messageService.create(msgReq, msgReq.getAttachments());
 
@@ -101,14 +101,14 @@ class DiscodeitApplicationTests {
         // ---------------------------------------------------------
         System.out.println("\n--- [Step 4] 읽음 상태(ReadStatus) 업데이트 ---");
         // 유저 B가 비공개 채널의 메시지를 읽음 처리
-        List<ReadStatusDto> bStatuses = readStatusService.findAllByUserId(userB.getId());
+        List<ReadStatusDto> bStatuses = readStatusService.findAllByUserId(userB.id());
         // 비공개 채널에 대한 ReadStatus 찾기
         UUID readStatusId = bStatuses.stream()
                 .filter(rs -> rs.getChannelId().equals(privateChannel.getId()))
                 .findFirst().orElseThrow().getId();
 
         // 업데이트 수행
-        UpdateReadStatusRequestDto updateReadReq = new UpdateReadStatusRequestDto();
+        UpdateReadStatusRequestDto updateReadReq = new UpdateReadStatusRequestDto(null);
         ReadStatusDto updatedStatus = readStatusService.update(readStatusId, updateReadReq);
 
         // 마지막 읽은 시간 검증
@@ -122,8 +122,8 @@ class DiscodeitApplicationTests {
 
         // 1. 유저 이름 수정
         UpdateUserRequestDto updateUserReq = new UpdateUserRequestDto("woody_modified", null, null, null);
-        UserDto updatedUser = userService.update(userA.getId(), updateUserReq);
-        assertThat(updatedUser.getUsername()).isEqualTo("woody_modified");
+        UserDto updatedUser = userService.update(userA.id(), updateUserReq);
+        assertThat(updatedUser.username()).isEqualTo("woody_modified");
 
         // 2. 메시지 내용 수정
         UpdateMessageRequestDto updateMsgReq = new UpdateMessageRequestDto("숙제 제출합니다. (수정됨)");
@@ -147,11 +147,11 @@ class DiscodeitApplicationTests {
         System.out.println("✅ 첨부파일 연쇄 삭제 확인 완료.");
 
         // 유저 B + UserStatus 삭제
-        userService.delete(userB.getId());
-        assertThatThrownBy(() -> userService.find(userB.getId()))
+        userService.delete(userB.id());
+        assertThatThrownBy(() -> userService.find(userB.id()))
                 .isInstanceOf(java.util.NoSuchElementException.class);
         // UserStatus 삭제 확인
-        assertThat(userStatusService.findAll().stream().anyMatch(s -> s.getUserId().equals(userB.getId()))).isFalse();
+        assertThat(userStatusService.findAll().stream().anyMatch(s -> s.getUserId().equals(userB.id()))).isFalse();
 
         System.out.println("✅ 삭제 로직 검증 성공.");
 
@@ -168,7 +168,7 @@ class DiscodeitApplicationTests {
         CreateUserRequestDto userReq = new CreateUserRequestDto("ex_user", "ex@test.com", "1234", null);
         UserDto user = userService.create(userReq);
 
-        CreateMessageRequestDto badMsgReq = new CreateMessageRequestDto("Fail", UUID.randomUUID(), user.getId(), null);
+        CreateMessageRequestDto badMsgReq = new CreateMessageRequestDto("Fail", UUID.randomUUID(), user.id(), null);
 
         assertThatThrownBy(() -> messageService.create(badMsgReq, null))
                 .isInstanceOf(java.util.NoSuchElementException.class)

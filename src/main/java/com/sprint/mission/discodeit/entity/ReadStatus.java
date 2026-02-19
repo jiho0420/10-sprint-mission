@@ -32,4 +32,10 @@ public class ReadStatus implements Serializable {
         this.updatedAt = Instant.now();
     }
 
+    // 클라이언트가 보낸 특정 시간으로 업데이트 하는 메서드
+    public void updateLastReadAt(Instant newTime) {
+        this.lastReadAt = newTime;
+        this.updatedAt = Instant.now();
+    }
+
 }

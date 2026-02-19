@@ -43,6 +43,10 @@ public class BasicReadStatusService implements ReadStatusService {
         }
 
         ReadStatus readStatus = new ReadStatus(dto.getUserId(), dto.getChannelId());
+        // 클라이언트가 lastReadAt을 명시적으로 보낸 경우 해당 시점으로 설정
+        if (dto.getLastReadAt() != null) {
+            readStatus.updateLastReadAt(dto.getLastReadAt());
+        }
         readStatusRepository.save(readStatus);
 
         return readStatusMapper.toDto(readStatus);
