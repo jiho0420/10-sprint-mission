@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.*;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST,
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(
+    public User create(
             @RequestPart("userCreateRequest") @Valid CreateUserRequestDto request,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
@@ -57,10 +59,10 @@ public class UserController {
 
     @RequestMapping(method = RequestMethod.PATCH, value = "/{userId}",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<UserDto> update(
+    public ResponseEntity<User> update(
             @PathVariable UUID userId,
-            @RequestPart(value = "userUpdateRequest", required = false) UpdateUserRequestDto request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
+            @Parameter(name = "userUpdateRequest", required = false) @RequestPart(value = "userUpdateRequest", required = false) UpdateUserRequestDto request,
+            @Parameter(name = "profile", required = false) @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
         if (request == null) {
             request = new UpdateUserRequestDto(null, null, null, null);

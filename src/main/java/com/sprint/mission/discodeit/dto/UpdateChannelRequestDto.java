@@ -9,6 +9,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class UpdateChannelRequestDto {
+
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "채널 이름은 필수입니다.")
     private String newName;
     private String newDescription;

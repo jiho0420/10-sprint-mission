@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -15,7 +17,13 @@ public class ChannelDto {
     private String name;
     private String description;
     private ChannelType type;
+
+    @JsonProperty("lastMessageAt")
+    @Schema(name = "lastMessageAt")
     private Instant lastMessageAt;
+
+    @JsonProperty("participantIds")
+    @Schema(name = "participantIds")
     private List<UUID> participantIds;
 
     public ChannelDto(Channel channel, Instant lastMessageAt, List<UUID> participantIds) {

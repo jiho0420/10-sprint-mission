@@ -30,7 +30,7 @@ public class BasicUserService implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDto create(CreateUserRequestDto request) {
+    public User create(CreateUserRequestDto request) {
 
         validateDuplicateUser(request.getUsername(), request.getEmail());
 
@@ -43,7 +43,7 @@ public class BasicUserService implements UserService {
         UserStatus status = new UserStatus(user.getId());
         userStatusRepository.save(status);
 
-        return userMapper.toDto(user);
+        return user;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserDto update(UUID userId, UpdateUserRequestDto request) {
+    public User update(UUID userId, UpdateUserRequestDto request) {
         User user = getUserEntity(userId);
 
         user.update(request.getNewUsername(), request.getNewEmail(), request.getNewPassword());
@@ -76,7 +76,7 @@ public class BasicUserService implements UserService {
         }
 
         userRepository.save(user);
-        return userMapper.toDto(user);
+        return user;
     }
 
     @Override

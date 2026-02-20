@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.io.Serial;
@@ -18,6 +20,8 @@ public class User implements Serializable {
     private String username;
     private String email;
     private String password;
+
+    @JsonProperty("profileId")
     private UUID profileImageId;
 
     public User(String username, String email, String password) {

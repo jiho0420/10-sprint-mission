@@ -28,15 +28,14 @@ public class BasicChannelService implements ChannelService {
     private final ChannelMapper channelMapper;
 
     @Override
-    public ChannelDto createPublic(CreatePublicChannelRequestDto dto) {
+    public Channel createPublic(CreatePublicChannelRequestDto dto) {
         Channel channel = new Channel(ChannelType.PUBLIC, dto.getName(), dto.getDescription());
         channelRepository.save(channel);
-        // 공개 채널은 참여자 목록 없음
-        return new ChannelDto(channel, null, List.of());
+        return channel;
     }
 
     @Override
-    public ChannelDto createPrivate(CreatePrivateChannelRequestDto dto) {
+    public Channel createPrivate(CreatePrivateChannelRequestDto dto) {
         // 명세에 name이 없으므로 서버에서 기본 이름 자동 생성
         String defaultName = "Private";
         Channel channel = new Channel(ChannelType.PRIVATE, defaultName, null);
@@ -49,7 +48,7 @@ public class BasicChannelService implements ChannelService {
             }
         }
 
-        return channelMapper.toDto(channel);
+        return channel;
     }
 
     @Override
@@ -79,7 +78,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelDto update(UUID channelId, UpdateChannelRequestDto dto) {
+    public Channel update(UUID channelId, UpdateChannelRequestDto dto) {
         Channel channel = getChannelEntity(channelId);
 
         if (channel.getType() == ChannelType.PRIVATE) {
@@ -89,7 +88,7 @@ public class BasicChannelService implements ChannelService {
         channel.update(dto.getNewName(), dto.getNewDescription());
         channelRepository.save(channel);
 
-        return channelMapper.toDto(channel);
+        return channel;
     }
 
     @Override

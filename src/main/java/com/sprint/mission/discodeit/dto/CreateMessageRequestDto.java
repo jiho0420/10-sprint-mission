@@ -12,12 +12,15 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 public class CreateMessageRequestDto {
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "메시지를 입력하세요.")
     private String content;
 
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotNull(message = "채널 ID는 필수입니다.")
     private UUID channelId;
 
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotNull(message = "작성자 ID는 필수입니다.")
     private UUID authorId;
 

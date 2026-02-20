@@ -38,14 +38,17 @@ class DiscodeitApplicationTests {
         // ---------------------------------------------------------
         System.out.println("--- [Step 1] 유저 생성 및 상태 확인 ---");
         BinaryContentDto profileImg = new BinaryContentDto("avatar.png", "image/png", 512, "image_data".getBytes());
-        CreateUserRequestDto userReqA = new CreateUserRequestDto("woody", "woody@test.com", "1234", profileImg);
-        CreateUserRequestDto userReqB = new CreateUserRequestDto("buzz", "buzz@test.com", "1234", null);
+        String randomA = UUID.randomUUID().toString().substring(0, 5);
+        CreateUserRequestDto userReqA = new CreateUserRequestDto("woody" + randomA, "woody" + randomA + "@test.com", "1234", profileImg);
+
+        String randomB = UUID.randomUUID().toString().substring(0, 5);
+        CreateUserRequestDto userReqB = new CreateUserRequestDto("buzz" + randomB, "buzz" + randomB + "@test.com", "1234", null);
 
         UserDto userA = userService.create(userReqA);
         UserDto userB = userService.create(userReqB);
 
         // 검증
-        assertThat(userA.username()).isEqualTo("woody");
+        assertThat(userA.username()).isEqualTo("woody" + randomA);
         assertThat(userA.profileId()).isNotNull(); // 프로필 이미지 저장 확인
         assertThat(userA.online()).isTrue(); // 온라인 확인
 

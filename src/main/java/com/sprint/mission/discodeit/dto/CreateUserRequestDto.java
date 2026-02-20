@@ -14,13 +14,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateUserRequestDto {
+
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "유저 이름은 필수입니다.")
     private String username;
 
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "이메일은 필수입니다.")
     @Email(message = "이메일 형식을 맞춰서 작성해주세요.")
     private String email;
 
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "비밀번호는 필수입니다.")
     private String password;
 

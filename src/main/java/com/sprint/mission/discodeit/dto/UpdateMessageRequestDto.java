@@ -8,6 +8,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class UpdateMessageRequestDto {
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "수정할 메시지 내용을 입력해주세요.")
     private String newContent;
 }

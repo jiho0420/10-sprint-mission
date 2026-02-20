@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.CreatePrivateChannelRequestDto;
 import com.sprint.mission.discodeit.dto.CreatePublicChannelRequestDto;
 import com.sprint.mission.discodeit.dto.UpdateChannelRequestDto;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +23,19 @@ public class ChannelController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/public")
         @ResponseStatus(HttpStatus.CREATED)
-        public ChannelDto createPublic(@Valid @RequestBody CreatePublicChannelRequestDto request){
+        public Channel createPublic(@Valid @RequestBody CreatePublicChannelRequestDto request){
             return channelService.createPublic(request);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/private")
         @ResponseStatus(HttpStatus.CREATED)
-        public ChannelDto createPrivate(@Valid @RequestBody CreatePrivateChannelRequestDto request){
+        public Channel createPrivate(@Valid @RequestBody CreatePrivateChannelRequestDto request){
             return channelService.createPrivate(request);
     }
 
     // 이미 방어 로직 구현되어있음
     @RequestMapping(method = RequestMethod.PATCH, value = "/{channelId}")
-    public ResponseEntity<ChannelDto> update(@PathVariable UUID channelId,
+    public ResponseEntity<Channel> update(@PathVariable UUID channelId,
                              @Valid @RequestBody UpdateChannelRequestDto request){
         return ResponseEntity.ok(channelService.update(channelId, request));
     }

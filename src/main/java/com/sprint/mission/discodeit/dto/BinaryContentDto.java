@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -13,15 +14,21 @@ public class BinaryContentDto {
     private UUID id;
     private Instant createdAt;
 
+    @JsonProperty(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "파일 이름이 존재하지 않습니다.")
     private String fileName;
 
+    @JsonProperty(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotBlank(message = "파일 타입은 필수입니다.")
     private String contentType;
 
     @Min(value = 1, message = "파일 크기는 0보다 커야 합니다.")
     private long size;
 
+    @JsonProperty(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @NotEmpty(message = "파일 내용이 비어있습니다.")
     private byte[] bytes;
 
