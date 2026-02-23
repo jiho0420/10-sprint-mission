@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.CreatePublicChannelRequestDto;
 import com.sprint.mission.discodeit.dto.UpdateChannelRequestDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Channel")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/channels")
