@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.service.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -72,9 +73,15 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatusDto update(UUID readStatusId, UpdateReadStatusRequestDto request) {
         ReadStatus readStatus = getReadStatusEntity(readStatusId);
 
-        readStatus.updateLastReadAt();
-        readStatusRepository.save(readStatus);
+        Instant requestedTime = request.getNewLastReadAt();
 
+        if (requestedTime != null) {
+            readStatus.updateLastReadAt(requestedTime);
+        } else {
+            readStatus.updateLastReadAt();
+        }
+
+        readStatusRepository.save(readStatus);
         return readStatusMapper.toDto(readStatus);
     }
 
