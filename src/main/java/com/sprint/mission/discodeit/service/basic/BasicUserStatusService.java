@@ -88,7 +88,7 @@ public class BasicUserStatusService implements UserStatusService {
                 .orElseThrow(() -> new NoSuchElementException("UserStatus not found with user id " + userId));
 
         if (request != null && request.getNewLastActiveAt() != null){
-            userStatus.setLastActiveAt(request.getNewLastActiveAt());
+            userStatus.updateLastActiveAt(request.getNewLastActiveAt());
         } else {
             userStatus.updateLastActiveAt();
         }

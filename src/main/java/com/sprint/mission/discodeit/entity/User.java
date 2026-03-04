@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class User implements Serializable {
     private Instant updatedAt;
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
 
     @JsonProperty("profileId")

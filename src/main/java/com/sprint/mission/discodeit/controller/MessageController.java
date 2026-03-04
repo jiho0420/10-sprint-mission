@@ -26,10 +26,10 @@ import java.util.UUID;
 public class MessageController {
     private final MessageService messageService;
 
-        @RequestMapping(method = RequestMethod.POST,
-                consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-        @ResponseStatus(HttpStatus.CREATED)
-        public MessageDto send(
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @ResponseStatus(HttpStatus.CREATED)
+    public MessageDto send(
             @RequestPart("messageCreateRequest") @Valid CreateMessageRequestDto request,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) throws IOException {
@@ -54,9 +54,9 @@ public class MessageController {
         return ResponseEntity.ok(messageService.update(messageId, request));
     }
 
-        @RequestMapping(method = RequestMethod.DELETE, value = "/{messageId}")
-        @ResponseStatus(HttpStatus.NO_CONTENT)
-        public void delete(@PathVariable UUID messageId){
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{messageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID messageId){
         messageService.delete(messageId);
     }
 

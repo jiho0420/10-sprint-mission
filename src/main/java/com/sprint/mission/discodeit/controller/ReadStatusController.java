@@ -33,11 +33,6 @@ public class ReadStatusController {
         return ResponseEntity.ok(readStatusService.update(readStatusId, request));
     }
 
-//    // 단건 조회는 요구사항에 없어 주석처리
-//    @RequestMapping(method = RequestMethod.GET, value = "/{readStatusId}")
-//    public ReadStatusDto find(@PathVariable UUID readStatusId){
-//        return readStatusService.find(readStatusId);
-//    }
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ReadStatusDto>> findAllByUser(@RequestParam UUID userId){

@@ -42,7 +42,4 @@ public class UserStatus implements Serializable {
         Duration duration = Duration.between(lastActiveAt, now);
         return (duration.toMinutes() <= 5);
     }
-
-    public void setLastActiveAt(Instant newLastActiveAt) {
-    }
 }

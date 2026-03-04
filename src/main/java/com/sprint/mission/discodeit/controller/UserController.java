@@ -48,12 +48,6 @@ public class UserController {
         return userService.create(request);
     }
 
-//    // 단건 조회는 api 요구 스펙에 따라 주석 처리
-//    @RequestMapping(method = RequestMethod.GET, value = "/{userId}")
-//    public UserDto findOne(@PathVariable UUID userId){
-//        return userService.find(userId);
-//    }
-
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<UserDto>> findAll(){
         return ResponseEntity.ok(userService.findAll());
