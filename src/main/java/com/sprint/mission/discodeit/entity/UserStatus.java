@@ -1,6 +1,9 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -8,38 +11,36 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+@Entity
+@Table(name = "user_statuses")
 @Getter
-public class UserStatus implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
+@NoArgsConstructor
+public class UserStatus extends BaseUpdatableEntity {
 
-    private UUID id;
-    private Instant updatedAt;
-    private Instant createdAt;
-    private UUID userId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @Column(name = "last_active_at", nullable = false)
     private Instant lastActiveAt;
 
-    public UserStatus(UUID userId) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.userId = userId;
+    public UserStatus(User user) {
+        this.user = user;
         this.lastActiveAt = Instant.now();
     }
 
-    public void updateLastActiveAt(){
+    public void updateLastActiveAt() {
         this.lastActiveAt = Instant.now();
-        this.updatedAt = Instant.now();
     }
 
-    // 클라이언트가 보낸 특정 시간으로 업데이트하는 메서드
     public void updateLastActiveAt(Instant newTime) {
         this.lastActiveAt = newTime;
-        this.updatedAt = Instant.now(); // 상태 변경 시점의 서버 시간을 updatedAt에 기록
     }
 
-    public boolean isOnline(){
+    public boolean isOnline() {
         Instant now = Instant.now();
         Duration duration = Duration.between(lastActiveAt, now);
         return (duration.toMinutes() <= 5);
     }
 }
+
