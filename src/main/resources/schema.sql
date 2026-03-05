@@ -31,6 +31,15 @@ CREATE TABLE user_statuses (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
+    user_id UUID NOT NULL UNIQUE,
+    last_active_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT fk_user_statuses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE read_statuses (
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ,
     user_id UUID NOT NULL,
     channel_id UUID NOT NULL,
     last_read_at TIMESTAMPTZ NOT NULL,
@@ -51,7 +60,7 @@ CREATE TABLE messages (
 );
 
 CREATE TABLE message_attachments (
-    message_id UUID PRIMARY KEY,
+    message_id UUID NOT NULL,
     attachment_id UUID NOT NULL,
     PRIMARY KEY (message_id, attachment_id),
     CONSTRAINT fk_ma_message FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,

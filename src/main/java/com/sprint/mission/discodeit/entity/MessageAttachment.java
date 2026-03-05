@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "message_attachments")
-@IdClass(MessageAttachment.class)
+@IdClass(MessageAttachmentId.class)
 @Getter
 @NoArgsConstructor
 public class MessageAttachment {
@@ -17,7 +17,7 @@ public class MessageAttachment {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "binary_content_id", nullable = false)
+    @JoinColumn(name = "attachment_id", nullable = false)
     private BinaryContent attachment;
 
     public MessageAttachment(Message message, BinaryContent attachment) {
