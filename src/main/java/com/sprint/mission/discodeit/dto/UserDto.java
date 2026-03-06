@@ -3,16 +3,14 @@ package com.sprint.mission.discodeit.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.Instant;
 import java.util.UUID;
 
+@Schema(name = "User")
 public record UserDto(
         UUID id,
-        Instant createdAt,
-        Instant updatedAt,
         String username,
         String email,
-        UUID profileId, // profileImageId
+        BinaryContentDto profile,
 
         @JsonProperty("online")
         @Schema(name = "online")
