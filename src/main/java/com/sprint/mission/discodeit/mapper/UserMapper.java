@@ -5,10 +5,9 @@ import com.sprint.mission.discodeit.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {BinaryContentMapper.class})
 public abstract class UserMapper {
 
-    @Mapping(target = "profileId", source = "user.profile.id")
     @Mapping(target = "online", source = "isOnline")
     public abstract UserDto toDto(User user, boolean isOnline);
 

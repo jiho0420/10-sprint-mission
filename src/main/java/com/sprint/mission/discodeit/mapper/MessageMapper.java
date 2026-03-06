@@ -12,7 +12,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public abstract class MessageMapper {
 
-    @Mapping(source = "channel.id", target = "channelId")
+    @Mapping(source = "message.channel.id", target = "channelId")
     @Mapping(source = "authorDto", target = "author")
     @Mapping(source = "attachmentDtos", target = "attachments")
     public abstract MessageDto toDto(Message message, UserDto authorDto, List<BinaryContentDto> attachmentDtos);
