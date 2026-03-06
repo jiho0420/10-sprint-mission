@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
@@ -30,6 +32,7 @@ public class BasicUserService implements UserService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public User create(CreateUserRequestDto request) {
 
         validateDuplicateUser(request.getUsername(), request.getEmail());
@@ -40,7 +43,7 @@ public class BasicUserService implements UserService {
 
         userRepository.save(user);
 
-        UserStatus status = new UserStatus(user.getId());
+        UserStatus status = new UserStatus(user);
         userStatusRepository.save(status);
 
         return user;
@@ -75,7 +78,6 @@ public class BasicUserService implements UserService {
             uploadProfileImage(user, request.getNewProfileImage());
         }
 
-        userRepository.save(user);
         return user;
     }
 
