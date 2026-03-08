@@ -20,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
-    public User login(@Valid @RequestBody LoginRequestDto request){
+    public UserDto login(@Valid @RequestBody LoginRequestDto request){
         return authService.login(request);
     }
 }

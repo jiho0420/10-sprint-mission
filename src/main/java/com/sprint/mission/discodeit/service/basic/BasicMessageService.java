@@ -1,15 +1,14 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContentDto;
-import com.sprint.mission.discodeit.dto.CreateMessageRequestDto;
-import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.UpdateMessageRequestDto;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageSentEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -18,6 +17,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,41 +33,45 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
     private final MessageMapper messageMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserMapper userMapper;
+    private final BinaryContentMapper binaryContentMapper;
 
     @Override
+    @Transactional
     public MessageDto create(CreateMessageRequestDto request, List<BinaryContentDto> attachments) {
 
-        Channel channel = channelRepository.findById(request.getChannelId())
-                .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + request.getChannelId()));
-        User author = userRepository.findById(request.getAuthorId())
-                .orElseThrow(() -> new NoSuchElementException("Author not found with id " + request.getAuthorId()));
+        Channel channel = channelRepository.findById(request.channelId())
+                .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + request.channelId()));
+        User author = userRepository.findById(request.authorId())
+                .orElseThrow(() -> new NoSuchElementException("Author not found with id " + request.authorId()));
 
-        Message message = new Message(request.getContent(), channel, author);
+        Message message = new Message(request.content(), channel, author);
 
         // Message 객체에 BinaryContent 엔티티를 연결
         if (attachments != null && !attachments.isEmpty()) {
             for (BinaryContentDto dto : attachments) {
                 BinaryContent content = new BinaryContent(
-                        dto.getFileName(),
-                        dto.getContentType(),
-                        dto.getSize(),
-                        dto.getBytes()
+                        dto.fileName(),
+                        dto.contentType(),
+                        dto.size(),
+                        dto.bytes()
                 );
-                binaryContentRepository.save(content);
                 message.addAttachment(content); // 직접 객체 연결
             }
         }
         // 메시지 생성 및 저장
         messageRepository.save(message);
         // 메시지 생성 시 그 유저는 활동중임을 나타냄
-        eventPublisher.publishEvent(new MessageSentEvent(request.getAuthorId()));
-        return messageMapper.toDto(message);
+        eventPublisher.publishEvent(new MessageSentEvent(request.authorId()));
+
+        UserDto authorDto = userMapper.toDto(author, author.getStatus() != null && author.getStatus().isOnline());
+        return messageMapper.toDto(message, authorDto, attachments);
     }
 
     @Override
     public MessageDto find(UUID messageId) {
         Message message = getMessageEntity(messageId);
-        return messageMapper.toDto(message);
+        return mapToDtoWithDependencies(message);
     }
 
     @Override
@@ -78,28 +82,29 @@ public class BasicMessageService implements MessageService {
 
 
         return messageRepository.findAllByChannelId(channelId).stream()
-                .map(messageMapper::toDto)
+                .map(this::mapToDtoWithDependencies)
                 .toList();
     }
 
     @Override
+    @Transactional
     public MessageDto update(UUID messageId, UpdateMessageRequestDto request) {
         Message message = getMessageEntity(messageId);
 
-        message.update(request.getNewContent());
-        messageRepository.save(message);
+        message.update(request.newContent());
 
-        return messageMapper.toDto(message);
+        return mapToDtoWithDependencies(message);
     }
 
     @Override
+    @Transactional
     public void delete(UUID messageId) {
         Message message = getMessageEntity(messageId);
 
         // 연관된 첨부파일 삭제 (내부 메서드)
         deleteAttachedFiles(message);
 
-        messageRepository.deleteById(messageId);
+        messageRepository.delete(message);
     }
 
     //  ------ 내부 메서드 -------
@@ -111,26 +116,6 @@ public class BasicMessageService implements MessageService {
     }
 
 
-    // 첨부파일 저장 후 id로 반환
-    private List<UUID> processAttachments(List<BinaryContentDto> attachments) {
-        if (attachments == null || attachments.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<UUID> attachmentIds = new ArrayList<>();
-        for (BinaryContentDto dto : attachments) {
-            BinaryContent content = new BinaryContent(
-                    dto.getFileName(),
-                    dto.getContentType(),
-                    dto.getSize(),
-                    dto.getBytes()
-            );
-            binaryContentRepository.save(content);
-            attachmentIds.add(content.getId());
-        }
-        return attachmentIds;
-    }
-
     // 메시지에 포함된 첨부파일 삭제
     private void deleteAttachedFiles(Message message) {
         List<BinaryContent> attachments = message.getAttachments();
@@ -139,5 +124,19 @@ public class BasicMessageService implements MessageService {
                 binaryContentRepository.deleteById(file.getId());
             }
         }
+    }
+
+    // MessageMapper 명세에 맞춰 의존 DTO를 생성해 넘겨주는 브릿지 메서드
+    private MessageDto mapToDtoWithDependencies(Message message) {
+        User author = message.getAuthor();
+        UserDto authorDto = null;
+        if (author != null) {
+            authorDto = userMapper.toDto(author, author.getStatus() != null && author.getStatus().isOnline());
+        }
+        List<BinaryContentDto> attachmentDtos = message.getAttachments().stream()
+                .map(binaryContentMapper::toDto)
+                .toList();
+
+        return messageMapper.toDto(message, authorDto, attachmentDtos);
     }
 }

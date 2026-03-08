@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(name = "UserCreateRequest")
 public record CreateUserRequestDto(
         // Swagger 호환성을 위한 필드값 NOT_REQUIRED 처리
-
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         @NotBlank(message = "유저 이름은 필수입니다.")
         String username,

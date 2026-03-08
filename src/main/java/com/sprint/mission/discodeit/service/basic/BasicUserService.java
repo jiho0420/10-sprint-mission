@@ -33,67 +33,56 @@ public class BasicUserService implements UserService {
 
     @Override
     @Transactional
-    public User create(CreateUserRequestDto request) {
+    public UserDto create(CreateUserRequestDto request) {
+        validateDuplicateUser(request.username(), request.email());
 
-        validateDuplicateUser(request.getUsername(), request.getEmail());
-
-        User user = new User(request.getUsername(), request.getEmail(), request.getPassword());
-
-        uploadProfileImage(user, request.getProfileImage());
+        User user = new User(request.username(), request.email(), request.password());
+        uploadProfileImage(user, request.profileImage());
 
         userRepository.save(user);
 
         UserStatus status = new UserStatus(user);
         userStatusRepository.save(status);
 
-        return user;
+        return userMapper.toDto(user, true);
     }
 
     @Override
     public Optional<UserDto> findById(UUID userId) {
         return userRepository.findById(userId)
-                .map(userMapper::toDto);
+                .map(user -> userMapper.toDto(user, checkOnline(user)));
     }
 
     @Override
     public UserDto find(UUID userId) {
         User user = getUserEntity(userId);
-        return userMapper.toDto(user);
+        return userMapper.toDto(user, checkOnline(user));
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(userMapper::toDto)
+                .map(user -> userMapper.toDto(user, checkOnline(user)))
                 .toList();
     }
 
     @Override
-    public User update(UUID userId, UpdateUserRequestDto request) {
+    public UserDto update(UUID userId, UpdateUserRequestDto request) {
         User user = getUserEntity(userId);
 
-        user.update(request.getNewUsername(), request.getNewEmail(), request.getNewPassword());
+        user.update(request.newUsername(), request.newEmail(), request.newPassword());
 
-        if (request.getNewProfileImage() != null) {
-            uploadProfileImage(user, request.getNewProfileImage());
+        if (request.newProfileImage() != null) {
+            uploadProfileImage(user, request.newProfileImage());
         }
 
-        return user;
+        return userMapper.toDto(user, checkOnline(user));
     }
 
     @Override
     public void delete(UUID userId) {
         User user = getUserEntity(userId);
-
-        userStatusRepository.findByUserId(userId)
-                .ifPresent(status -> userStatusRepository.deleteById(status.getId()));
-
-        if (user.getProfileImageId() != null) {
-            binaryContentRepository.deleteById(user.getProfileImageId());
-        }
-
-        // 유저 삭제
-        userRepository.deleteById(userId);
+        userRepository.delete(user);
     }
 
     // --------- 내부 메서드 구현 ---------
@@ -109,13 +98,12 @@ public class BasicUserService implements UserService {
         if (contentDto == null) return;
 
         BinaryContent content = new BinaryContent(
-                contentDto.getFileName(),
-                contentDto.getContentType(),
-                contentDto.getSize(),
-                contentDto.getBytes()
+                contentDto.fileName(),
+                contentDto.contentType(),
+                contentDto.size(),
+                contentDto.bytes()
         );
-        binaryContentRepository.save(content);
-        user.updateProfileImageId(content.getId());
+        user.updateProfileImageId(content);
     }
 
     // 중복 가입 검증
@@ -128,5 +116,10 @@ public class BasicUserService implements UserService {
         if (emailExists) {
             throw new IllegalArgumentException("Email already exists: " + email);
         }
+    }
+    // UserStatus에 있는 isOnline() 메서드 사용
+    private boolean checkOnline(User user) {
+        UserStatus status = user.getStatus();
+        return status != null && status.isOnline();
     }
 }
