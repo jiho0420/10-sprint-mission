@@ -6,7 +6,6 @@ import com.sprint.mission.discodeit.dto.CreatePublicChannelRequestDto;
 import com.sprint.mission.discodeit.dto.UpdateChannelRequestDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -62,7 +60,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     public ChannelDto find(UUID channelId) {
         Channel channel = getChannelEntity(channelId);
-        return mapToDtoWithDependencies(channel);
+        return channelMapper.toDto(channel);
     }
 
     @Override
@@ -77,14 +75,14 @@ public class BasicChannelService implements ChannelService {
                             .anyMatch(rs -> rs.getChannel()
                                     .getId().equals(channel.getId()) && rs.getUser().getId().equals(userId));
                 })
-                .map(this::mapToDtoWithDependencies)
+                .map(channelMapper::toDto)
                 .toList();
     }
 
     @Override
     public List<ChannelDto> findAll() {
         return channelRepository.findAll().stream()
-                .map(this::mapToDtoWithDependencies)
+                .map(channelMapper::toDto)
                 .toList();
     }
 
@@ -116,20 +114,5 @@ public class BasicChannelService implements ChannelService {
                 .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + channelId));
     }
 
-    // ChannelMapper 명세에 맞춰 의존 데이터(lastMessageAt, participantIds)를 조회해 전달
-    private ChannelDto mapToDtoWithDependencies(Channel channel) {
-        List<Message> messages = messageRepository.findAllByChannelId(channel.getId());
-        Instant lastMessageAt = messages.stream()
-                .map(Message::getCreatedAt)
-                .max(Instant::compareTo)
-                .orElse(null);
-
-        List<UUID> participantIds = readStatusRepository.findAll().stream()
-                .filter(rs -> rs.getChannel().getId().equals(channel.getId()))
-                .map(rs -> rs.getUser().getId())
-                .toList();
-
-        return channelMapper.toDto(channel, lastMessageAt, participantIds);
-    }
 
 }

@@ -19,7 +19,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -33,8 +32,6 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
     private final MessageMapper messageMapper;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserMapper userMapper;
-    private final BinaryContentMapper binaryContentMapper;
 
     @Override
     @Transactional
@@ -64,14 +61,13 @@ public class BasicMessageService implements MessageService {
         // 메시지 생성 시 그 유저는 활동중임을 나타냄
         eventPublisher.publishEvent(new MessageSentEvent(request.authorId()));
 
-        UserDto authorDto = userMapper.toDto(author, author.getStatus() != null && author.getStatus().isOnline());
-        return messageMapper.toDto(message, authorDto, attachments);
+        return messageMapper.toDto(message);
     }
 
     @Override
     public MessageDto find(UUID messageId) {
         Message message = getMessageEntity(messageId);
-        return mapToDtoWithDependencies(message);
+        return messageMapper.toDto(message);
     }
 
     @Override
@@ -80,9 +76,8 @@ public class BasicMessageService implements MessageService {
             throw new NoSuchElementException("Channel not found with id " + channelId);
         }
 
-
         return messageRepository.findAllByChannelId(channelId).stream()
-                .map(this::mapToDtoWithDependencies)
+                .map(messageMapper::toDto)
                 .toList();
     }
 
@@ -93,7 +88,7 @@ public class BasicMessageService implements MessageService {
 
         message.update(request.newContent());
 
-        return mapToDtoWithDependencies(message);
+        return messageMapper.toDto(message);
     }
 
     @Override
@@ -126,17 +121,4 @@ public class BasicMessageService implements MessageService {
         }
     }
 
-    // MessageMapper 명세에 맞춰 의존 DTO를 생성해 넘겨주는 브릿지 메서드
-    private MessageDto mapToDtoWithDependencies(Message message) {
-        User author = message.getAuthor();
-        UserDto authorDto = null;
-        if (author != null) {
-            authorDto = userMapper.toDto(author, author.getStatus() != null && author.getStatus().isOnline());
-        }
-        List<BinaryContentDto> attachmentDtos = message.getAttachments().stream()
-                .map(binaryContentMapper::toDto)
-                .toList();
-
-        return messageMapper.toDto(message, authorDto, attachmentDtos);
-    }
 }

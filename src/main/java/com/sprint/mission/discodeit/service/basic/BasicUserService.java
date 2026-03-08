@@ -44,29 +44,30 @@ public class BasicUserService implements UserService {
         UserStatus status = new UserStatus(user);
         userStatusRepository.save(status);
 
-        return userMapper.toDto(user, true);
+        return userMapper.toDto(user);
     }
 
     @Override
     public Optional<UserDto> findById(UUID userId) {
         return userRepository.findById(userId)
-                .map(user -> userMapper.toDto(user, checkOnline(user)));
+                .map(userMapper::toDto);
     }
 
     @Override
     public UserDto find(UUID userId) {
         User user = getUserEntity(userId);
-        return userMapper.toDto(user, checkOnline(user));
+        return userMapper.toDto(user);
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(user -> userMapper.toDto(user, checkOnline(user)))
+                .map(userMapper::toDto)
                 .toList();
     }
 
     @Override
+    @Transactional
     public UserDto update(UUID userId, UpdateUserRequestDto request) {
         User user = getUserEntity(userId);
 
@@ -76,10 +77,11 @@ public class BasicUserService implements UserService {
             uploadProfileImage(user, request.newProfileImage());
         }
 
-        return userMapper.toDto(user, checkOnline(user));
+        return userMapper.toDto(user);
     }
 
     @Override
+    @Transactional
     public void delete(UUID userId) {
         User user = getUserEntity(userId);
         userRepository.delete(user);
@@ -116,10 +118,5 @@ public class BasicUserService implements UserService {
         if (emailExists) {
             throw new IllegalArgumentException("Email already exists: " + email);
         }
-    }
-    // UserStatus에 있는 isOnline() 메서드 사용
-    private boolean checkOnline(User user) {
-        UserStatus status = user.getStatus();
-        return status != null && status.isOnline();
     }
 }
