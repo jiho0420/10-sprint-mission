@@ -1,12 +1,14 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.*;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageSentEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -14,9 +16,13 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -29,6 +35,7 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final MessageMapper messageMapper;
+    private final PageResponseMapper pageResponseMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -42,15 +49,15 @@ public class BasicMessageService implements MessageService {
 
         Message message = new Message(request.content(), channel, author);
 
-        // Message 객체에 BinaryContent 엔티티를 연결
         if (attachments != null && !attachments.isEmpty()) {
             for (BinaryContentDto dto : attachments) {
+                BinaryContentDto normalized = normalizeAttachment(dto);
                 BinaryContent content = new BinaryContent(
-                        dto.fileName(),
-                        dto.contentType(),
-                        dto.size()
+                        normalized.fileName(),
+                        normalized.contentType(),
+                        normalized.size()
                 );
-                message.addAttachment(content); // 직접 객체 연결
+                message.addAttachment(content);
             }
         }
         // 메시지 생성 및 저장
@@ -68,14 +75,20 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public List<MessageDto> findAllByChannelId(UUID channelId) {
+    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, int page) {
+        if (page < 0) {
+            throw new IllegalArgumentException("page must be >= 0");
+        }
         if (!channelRepository.existsById(channelId)) {
             throw new NoSuchElementException("Channel not found with id " + channelId);
         }
 
-        return messageRepository.findAllByChannelId(channelId).stream()
-                .map(messageMapper::toDto)
-                .toList();
+        PageRequest pageRequest = PageRequest.of(page, 50, Sort.Direction.DESC, "createdAt");
+        Slice<Message> messageSlice = messageRepository.findByChannelId(channelId, pageRequest);
+
+        Slice<MessageDto> messageDtoSlice = messageSlice.map(messageMapper::toDto);
+
+        return pageResponseMapper.fromSlice(messageDtoSlice);
     }
 
     @Override
@@ -93,8 +106,9 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID messageId) {
         Message message = getMessageEntity(messageId);
 
-        // 연관된 첨부파일 삭제 (내부 메서드)
-        deleteAttachedFiles(message);
+        List<BinaryContent> attachmentsToDelete = new ArrayList<>(message.getAttachments());
+        detachAttachments(message);
+        deleteAttachedFiles(attachmentsToDelete);
 
         messageRepository.delete(message);
     }
@@ -107,14 +121,44 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
     }
 
+    private BinaryContentDto normalizeAttachment(BinaryContentDto dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("Attachment must not be null");
+        }
+        if (dto.size() == null || dto.size() <= 0) {
+            throw new IllegalArgumentException("Attachment is empty");
+        }
+
+        String fileName = dto.fileName();
+        if (fileName == null || fileName.isBlank()) {
+            fileName = "unknown";
+        }
+
+        String contentType = dto.contentType();
+        if (contentType == null || contentType.isBlank()) {
+            contentType = "application/octet-stream";
+        }
+
+        return new BinaryContentDto(fileName, contentType, dto.size(), dto.bytes());
+    }
+
 
     // 메시지에 포함된 첨부파일 삭제
-    private void deleteAttachedFiles(Message message) {
-        List<BinaryContent> attachments = message.getAttachments();
-        if (attachments != null && !attachments.isEmpty()) {
-            for (BinaryContent file : attachments) {
-                binaryContentRepository.deleteById(file.getId());
-            }
+    private void detachAttachments(Message message) {
+        if (message.getAttachments() == null || message.getAttachments().isEmpty()) {
+            return;
+        }
+        message.getAttachments().clear();
+        messageRepository.save(message);
+        messageRepository.flush();
+    }
+
+    private void deleteAttachedFiles(List<BinaryContent> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return;
+        }
+        for (BinaryContent file : attachments) {
+            binaryContentRepository.deleteById(file.getId());
         }
     }
 

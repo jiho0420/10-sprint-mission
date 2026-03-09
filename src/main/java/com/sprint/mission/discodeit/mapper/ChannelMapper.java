@@ -27,9 +27,8 @@ public abstract class ChannelMapper {
     public abstract ChannelDto toDto(Channel channel);
 
     protected Instant getLastMessageAt(Channel channel) {
-        return messageRepository.findAllByChannelId(channel.getId()).stream()
+        return messageRepository.findTopByChannelIdOrderByCreatedAtDesc(channel.getId())
                 .map(Message::getCreatedAt)
-                .max(Instant::compareTo)
                 .orElse(null);
     }
 

@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.CreateMessageRequestDto;
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.UpdateMessageRequestDto;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -61,7 +62,8 @@ public class MessageController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<MessageDto>> findAllByChannel(@RequestParam UUID channelId){
-        return ResponseEntity.ok(messageService.findAllByChannelId(channelId));
+    public ResponseEntity<PageResponse<MessageDto>> findAllByChannel(@RequestParam UUID channelId,
+                                                                     @RequestParam(defaultValue = "0") int page){
+        return ResponseEntity.ok(messageService.findAllByChannelId(channelId, page));
     }
 }
