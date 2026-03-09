@@ -1,4 +1,4 @@
-CREATE TABLE binary_contents (
+CREATE TABLE IF NOT EXISTS binary_contents (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     file_name VARCHAR(255) NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE binary_contents (
     bytes BYTEA NOT NULL
 );
 
-CREATE TABLE channels (
+CREATE TABLE IF NOT EXISTS channels (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -16,7 +16,7 @@ CREATE TABLE channels (
     type VARCHAR(10) NOT NULL CHECK (type IN ('PUBLIC', 'PRIVATE'))
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -27,7 +27,7 @@ CREATE TABLE users (
     CONSTRAINT fk_users_profile FOREIGN KEY (profile_id) REFERENCES binary_contents(id) ON DELETE SET NULL
 );
 
-CREATE TABLE user_statuses (
+CREATE TABLE IF NOT EXISTS user_statuses (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -36,7 +36,7 @@ CREATE TABLE user_statuses (
     CONSTRAINT fk_user_statuses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE read_statuses (
+CREATE TABLE IF NOT EXISTS read_statuses (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -48,7 +48,7 @@ CREATE TABLE read_statuses (
     CONSTRAINT fk_read_statuses_channel FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
@@ -59,7 +59,7 @@ CREATE TABLE messages (
     CONSTRAINT fk_messages_author FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE TABLE message_attachments (
+CREATE TABLE IF NOT EXISTS message_attachments (
     message_id UUID NOT NULL,
     attachment_id UUID NOT NULL,
     PRIMARY KEY (message_id, attachment_id),

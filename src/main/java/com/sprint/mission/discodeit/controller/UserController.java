@@ -29,7 +29,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST,
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(
+    public UserDto create(
             @RequestPart("userCreateRequest") @Valid CreateUserRequestDto request,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
@@ -42,7 +42,12 @@ public class UserController {
                     profile.getSize(),
                     profile.getBytes()
             );
-            request.setProfileImage(profileImage);
+            request = new CreateUserRequestDto(
+                    request.username(),
+                    request.email(),
+                    request.password(),
+                    profileImage
+            );
         }
 
         return userService.create(request);
@@ -55,7 +60,7 @@ public class UserController {
 
     @RequestMapping(method = RequestMethod.PATCH, value = "/{userId}",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<User> update(
+    public ResponseEntity<UserDto> update(
             @PathVariable UUID userId,
             @Parameter(name = "userUpdateRequest", required = false) @RequestPart(value = "userUpdateRequest", required = false) UpdateUserRequestDto request,
             @Parameter(name = "profile", required = false) @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -73,7 +78,12 @@ public class UserController {
                     profile.getBytes()
             );
 
-            request.setNewProfileImage(newProfileImage);
+            request = new UpdateUserRequestDto(
+                    request.newUsername(),
+                    request.newEmail(),
+                    request.newPassword(),
+                    newProfileImage
+            );
         }
         return ResponseEntity.ok(userService.update(userId, request));
     }

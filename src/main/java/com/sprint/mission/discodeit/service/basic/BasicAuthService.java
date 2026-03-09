@@ -30,11 +30,6 @@ public class BasicAuthService implements AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        return userMapper.toDto(user, checkOnline(user));
-    }
-
-    private boolean checkOnline(User user) {
-        UserStatus status = user.getStatus();
-        return status != null && status.isOnline();
+        return userMapper.toDto(user);
     }
 }

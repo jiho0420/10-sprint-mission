@@ -94,7 +94,6 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
     }
 
-
     // 프로필 이미지 업로드 및 유저 정보 업데이트
     private void uploadProfileImage(User user, BinaryContentDto contentDto) {
         if (contentDto == null) return;
@@ -102,8 +101,7 @@ public class BasicUserService implements UserService {
         BinaryContent content = new BinaryContent(
                 contentDto.fileName(),
                 contentDto.contentType(),
-                contentDto.size(),
-                contentDto.bytes()
+                contentDto.size()
         );
         user.updateProfileImageId(content);
     }

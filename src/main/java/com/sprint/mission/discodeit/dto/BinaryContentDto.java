@@ -12,4 +12,7 @@ public record BinaryContentDto(
         Long size,
         byte[] bytes
 ) {
+    public BinaryContentDto(String fileName, String contentType, Long size, byte[] bytes) {
+        this(null, fileName, contentType, size, bytes);
+    }
 }

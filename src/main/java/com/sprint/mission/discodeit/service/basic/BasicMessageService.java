@@ -6,9 +6,7 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageSentEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
-import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -50,8 +48,7 @@ public class BasicMessageService implements MessageService {
                 BinaryContent content = new BinaryContent(
                         dto.fileName(),
                         dto.contentType(),
-                        dto.size(),
-                        dto.bytes()
+                        dto.size()
                 );
                 message.addAttachment(content); // 직접 객체 연결
             }
