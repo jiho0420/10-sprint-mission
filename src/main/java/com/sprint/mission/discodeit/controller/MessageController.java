@@ -9,6 +9,10 @@ import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +67,7 @@ public class MessageController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<PageResponse<MessageDto>> findAllByChannel(@RequestParam UUID channelId,
-                                                                     @RequestParam(defaultValue = "0") int page){
-        return ResponseEntity.ok(messageService.findAllByChannelId(channelId, page));
+                                                                     @PageableDefault(size = 50, sort = "createdAt",direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseEntity.ok(messageService.findAllByChannelId(channelId, pageable));
     }
 }

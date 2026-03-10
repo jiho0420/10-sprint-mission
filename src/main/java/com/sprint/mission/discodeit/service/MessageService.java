@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.CreateMessageRequestDto;
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.UpdateMessageRequestDto;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 public interface MessageService {
     MessageDto create(CreateMessageRequestDto request, List<BinaryContentDto> attachments);
     MessageDto find(UUID messageId);
-    PageResponse<MessageDto> findAllByChannelId(UUID channelId, int page);
+    PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable);
     MessageDto update(UUID messageId, UpdateMessageRequestDto request);
     void delete(UUID messageId);
 }

@@ -14,9 +14,11 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class BasicMessageService implements MessageService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final BinaryContentStorage binaryContentStorage;
     private final MessageMapper messageMapper;
     private final PageResponseMapper pageResponseMapper;
     private final ApplicationEventPublisher eventPublisher;
@@ -57,6 +60,12 @@ public class BasicMessageService implements MessageService {
                         normalized.contentType(),
                         normalized.size()
                 );
+
+                content = binaryContentRepository.save(content);
+                if(normalized.bytes() != null){
+                    binaryContentStorage.put(content.getId(), normalized.bytes());
+                }
+
                 message.addAttachment(content);
             }
         }
@@ -75,16 +84,11 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, int page) {
-        if (page < 0) {
-            throw new IllegalArgumentException("page must be >= 0");
-        }
+    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable) {
         if (!channelRepository.existsById(channelId)) {
             throw new NoSuchElementException("Channel not found with id " + channelId);
         }
-
-        PageRequest pageRequest = PageRequest.of(page, 50, Sort.Direction.DESC, "createdAt");
-        Slice<Message> messageSlice = messageRepository.findByChannelId(channelId, pageRequest);
+        Slice<Message> messageSlice = messageRepository.findByChannelId(channelId, pageable);
 
         Slice<MessageDto> messageDtoSlice = messageSlice.map(messageMapper::toDto);
 

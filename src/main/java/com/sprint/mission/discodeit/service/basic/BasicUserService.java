@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final BinaryContentStorage binaryContentStorage;
     private final UserMapper userMapper;
 
     @Override
@@ -96,13 +98,16 @@ public class BasicUserService implements UserService {
 
     // 프로필 이미지 업로드 및 유저 정보 업데이트
     private void uploadProfileImage(User user, BinaryContentDto contentDto) {
-        if (contentDto == null) return;
+        if (contentDto == null || contentDto.bytes() == null) return;
 
         BinaryContent content = new BinaryContent(
                 contentDto.fileName(),
                 contentDto.contentType(),
                 contentDto.size()
         );
+        content = binaryContentRepository.save(content);
+        binaryContentStorage.put(content.getId(), contentDto.bytes());
+
         user.updateProfileImageId(content);
     }
 
