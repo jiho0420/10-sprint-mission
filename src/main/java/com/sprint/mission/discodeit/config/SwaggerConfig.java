@@ -15,10 +15,11 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+                .openapi("3.1.0")
                 .info(new Info()
                         .title("Discodeit API 문서")
                         .description("Discodeit 프로젝트의 Swagger API 문서입니다.")
-                        .version("1.0.0")) // 버전은 임의 지정
+                        .version("1.2")) // 버전은 임의 지정
 
                 .servers(List.of(
                         new Server()

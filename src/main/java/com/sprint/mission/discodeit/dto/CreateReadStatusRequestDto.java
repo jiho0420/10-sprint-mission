@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 
-@Schema(name = "ReadStatusCreateRequest")
+@Schema(name = "ReadStatusCreateRequest", description = "Message 읽음 상태 생성 정보")
 public record CreateReadStatusRequestDto(
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         @NotNull(message = "유저 ID는 필수입니다.")

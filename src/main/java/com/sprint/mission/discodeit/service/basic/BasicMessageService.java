@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -85,15 +86,26 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable) {
+    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
         if (!channelRepository.existsById(channelId)) {
             throw new NoSuchElementException("Channel not found with id " + channelId);
         }
-        Slice<Message> messageSlice = messageRepository.findByChannelId(channelId, pageable);
+        Slice<Message> messageSlice;
+        if (cursor == null) {
+            messageSlice = messageRepository.findByChannelId(channelId, pageable);
+        } else {
+            messageSlice = messageRepository.findByChannelIdAndCreatedAtLessThan(channelId, cursor, pageable);
+        }
 
         Slice<MessageDto> messageDtoSlice = messageSlice.map(messageMapper::toDto);
 
-        return pageResponseMapper.fromSlice(messageDtoSlice);
+        Instant nextCursor = null;
+        if (messageSlice.hasNext() && !messageSlice.getContent().isEmpty()) {
+            List<Message> content = messageSlice.getContent();
+            nextCursor = content.get(content.size() - 1).getCreatedAt();
+        }
+
+        return pageResponseMapper.fromSlice(messageDtoSlice, nextCursor);
     }
 
     @Override

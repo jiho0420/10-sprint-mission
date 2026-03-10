@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Schema(name = "Channel")
 public record ChannelDto(
         UUID id,
         String name,
@@ -19,8 +18,8 @@ public record ChannelDto(
         @Schema(name = "lastMessageAt")
         Instant lastMessageAt,
 
-        @JsonProperty("participantIds")
-        @Schema(name = "participantIds")
-        List<UUID> participantIds
+        @JsonProperty("participants")
+        @Schema(name = "participants")
+        List<UserDto> participants
 ) {
 }

@@ -3,7 +3,7 @@ package com.sprint.mission.discodeit.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-@Schema(name = "PublicChannelCreateRequest")
+@Schema(name = "PublicChannelCreateRequest", description = "Public Channel 생성 정보")
 public record CreatePublicChannelRequestDto(
 
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)

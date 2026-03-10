@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-@Schema(name = "UserCreateRequest")
+@Schema(name = "UserCreateRequest", description = "User 생성 정보")
 public record CreateUserRequestDto(
         // Swagger 호환성을 위한 필드값 NOT_REQUIRED 처리
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
