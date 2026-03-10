@@ -66,16 +66,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
-        return channelRepository.findAll().stream()
-                .filter(channel -> {
-                    if (channel.getType() == ChannelType.PUBLIC) {
-                        return true;
-                    }
-                    // private인 경우 내 ReadStatus가 있는지 확인
-                    return readStatusRepository.findAllByUserId(userId).stream()
-                            .anyMatch(rs -> rs.getChannel()
-                                    .getId().equals(channel.getId()) && rs.getUser().getId().equals(userId));
-                })
+        return channelRepository.findAccessibleChannelsByUserId(userId).stream()
                 .map(channelMapper::toDto)
                 .toList();
     }
