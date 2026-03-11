@@ -9,7 +9,6 @@ import java.util.UUID;
 @Schema(name = "MessageCreateRequest", description = "Message 생성 정보")
 public record CreateMessageRequestDto(
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        @NotBlank(message = "메시지를 입력하세요.")
         String content,
 
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)

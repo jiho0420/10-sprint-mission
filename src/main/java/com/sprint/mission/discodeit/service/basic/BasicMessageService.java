@@ -54,6 +54,11 @@ public class BasicMessageService implements MessageService {
 
         Message message = new Message(request.content(), channel, author);
 
+        if ((request.content() == null || request.content().trim().isEmpty())
+                && (attachments == null || attachments.isEmpty())) {
+            throw new IllegalArgumentException("텍스트 내용이나 첨부파일 중 하나는 반드시 포함되어야 합니다.");
+        }
+
         if (attachments != null && !attachments.isEmpty()) {
             for (BinaryContentDto dto : attachments) {
                 BinaryContentDto normalized = normalizeAttachment(dto);
