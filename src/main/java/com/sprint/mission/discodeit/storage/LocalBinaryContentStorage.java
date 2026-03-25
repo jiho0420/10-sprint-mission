@@ -25,7 +25,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     private final Path root;
 
     public LocalBinaryContentStorage(@Value("${discodeit.storage.local.root-path}") String rootPath) {
-        this.root = Paths.get("rootPath");
+        this.root = Paths.get(rootPath);
     }
 
     @PostConstruct

@@ -116,9 +116,8 @@ public class BasicUserService implements UserService {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists: " + username);
         }
-        boolean emailExists = userRepository.findAll().stream()
-                .anyMatch(u -> u.getEmail().equals(email));
-        if (emailExists) {
+
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists: " + email);
         }
     }

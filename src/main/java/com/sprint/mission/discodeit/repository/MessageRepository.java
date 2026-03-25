@@ -12,10 +12,10 @@ import java.util.UUID;
 
 public interface MessageRepository extends JpaRepository<Message, UUID> {
 
-    @EntityGraph(attributePaths = {"author"})
+    @EntityGraph(attributePaths = {"author", "author.profile", "author.status", "attachments"})
     Slice<Message> findByChannelId(UUID channelId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"author"})
+    @EntityGraph(attributePaths = {"author", "author.profile", "author.status", "attachments"})
     Slice<Message> findByChannelIdAndCreatedAtLessThan(UUID channelId, Instant cursor, Pageable pageable);
 
     void deleteAllByChannelId(UUID channelId);
