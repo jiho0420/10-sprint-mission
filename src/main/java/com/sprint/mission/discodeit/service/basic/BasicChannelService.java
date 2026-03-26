@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,14 +36,19 @@ public class BasicChannelService implements ChannelService {
     @Override
     @Transactional
     public ChannelDto createPublic(CreatePublicChannelRequestDto request) {
+        log.info("Public 채널 생성 요청: name={}", request.name());
+
         Channel channel = new Channel(ChannelType.PUBLIC, request.name(), request.description());
         Channel savedChannel = channelRepository.save(channel);
+
+        log.info("Public 채널 생성 성공: channelId={}", savedChannel.getId());
         return channelMapper.toDto(savedChannel);
     }
 
     @Override
     @Transactional
     public ChannelDto createPrivate(CreatePrivateChannelRequestDto request) {
+        log.debug("Private 채널 생성 요청");
         // 명세에 name이 없으므로 서버에서 기본 이름 자동 생성
         String defaultName = "Private";
         Channel channel = new Channel(ChannelType.PRIVATE, defaultName, null);
@@ -54,6 +61,7 @@ public class BasicChannelService implements ChannelService {
                 readStatusRepository.save(status);
             }
         }
+        log.info("Private 채널 생성 성공: channelId={}", channel.getId());
         return channelMapper.toDto(channel);
     }
 
@@ -78,6 +86,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     @Transactional
     public ChannelDto update(UUID channelId, UpdateChannelRequestDto request) {
+        log.debug("채널 정보 수정 요청: channelId={}", channelId);
         Channel channel = getChannelEntity(channelId);
 
         if (channel.getType() == ChannelType.PRIVATE) {
@@ -85,16 +94,21 @@ public class BasicChannelService implements ChannelService {
         }
         channel.update(request.newName(), request.newDescription());
 
+        log.info("채널 정보 수정 완료: channelId={}", channel.getId());
         return channelMapper.toDto(channel);
     }
 
     @Override
     @Transactional
     public void delete(UUID channelId) {
+        log.warn("채널 삭제 요청: channelId={}", channelId);
+
         getChannelEntity(channelId);
         readStatusRepository.deleteAllByChannelId(channelId);
         messageRepository.deleteAllByChannelId(channelId);
         channelRepository.deleteById(channelId);
+
+        log.info("채널 삭제 완료: channelId={}", channelId);
     }
 
     // 채널 엔티티 조회

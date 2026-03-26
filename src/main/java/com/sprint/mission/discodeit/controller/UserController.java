@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Tag(name = "User")
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +45,7 @@ public class UserController {
             @RequestPart("userCreateRequest") @Valid CreateUserRequestDto request,
             @Parameter(description = "User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
+        log.info("REST 요청 - User 등록 시작: username={}", request.username());
 
         // 파일이 전송되었다면 DTO로 변환하여 request 객체에 주입
         if (profile != null && !profile.isEmpty()) {
@@ -86,6 +89,8 @@ public class UserController {
             @RequestPart(value = "userUpdateRequest") UpdateUserRequestDto request,
             @Parameter(description = "수정할 User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
+        log.info("REST 요청 - User 정보 수정 시작: userId={}", userId);
+
         if (request == null) {
             request = new UpdateUserRequestDto(null, null, null, null);
         }
@@ -118,6 +123,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@Parameter(description = "삭제할 User ID") @PathVariable UUID userId){
+        log.warn("REST 요청 - User 삭제 시작: userId={}", userId);
         userService.delete(userId);
     }
 

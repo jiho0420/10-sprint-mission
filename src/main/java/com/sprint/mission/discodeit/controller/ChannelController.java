@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Tag(name = "Channel")
 @RestController
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class ChannelController {
     @RequestMapping(method = RequestMethod.POST, value = "/public")
     @ResponseStatus(HttpStatus.CREATED)
     public ChannelDto createPublic(@Valid @RequestBody CreatePublicChannelRequestDto request){
+        log.info("REST 요청 - Public Channel 생성 시작: name={}", request.name());
         return channelService.createPublic(request);
     }
 
@@ -41,6 +44,7 @@ public class ChannelController {
     @RequestMapping(method = RequestMethod.POST, value = "/private")
     @ResponseStatus(HttpStatus.CREATED)
     public ChannelDto createPrivate(@Valid @RequestBody CreatePrivateChannelRequestDto request){
+        log.info("REST 요청 - Private Channel 생성 시작");
         return channelService.createPrivate(request);
     }
 
@@ -57,6 +61,7 @@ public class ChannelController {
     public ResponseEntity<ChannelDto> update(
             @Parameter(description = "수정할 Channel ID") @PathVariable UUID channelId,
             @Valid @RequestBody UpdateChannelRequestDto request){
+        log.info("REST 요청 - Channel 정보 수정 시작: channelId={}", channelId);
         return ResponseEntity.ok(channelService.update(channelId, request));
     }
 
@@ -69,6 +74,7 @@ public class ChannelController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/{channelId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@Parameter(description = "삭제할 Channel ID") @PathVariable UUID channelId){
+        log.warn("REST 요청 - Channel 삭제 시작: channelId={}", channelId);
         channelService.delete(channelId);
     }
 

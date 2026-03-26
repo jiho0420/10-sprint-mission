@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -36,6 +38,7 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto create(CreateUserRequestDto request) {
+        log.debug("사용자 가입 요청: username={}, email={}", request.username(), request.email());
         validateDuplicateUser(request.username(), request.email());
 
         User user = new User(request.username(), request.email(), request.password());
@@ -46,6 +49,7 @@ public class BasicUserService implements UserService {
         UserStatus status = new UserStatus(user);
         userStatusRepository.save(status);
 
+        log.info("사용자 가입 성공: userId={}", user.getId());
         return userMapper.toDto(user);
     }
 
@@ -71,6 +75,7 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto update(UUID userId, UpdateUserRequestDto request) {
+        log.debug("사용자 정보 수정 요청: userId={}", userId);
         User user = getUserEntity(userId);
 
         user.update(request.newUsername(), request.newEmail(), request.newPassword());
@@ -79,14 +84,17 @@ public class BasicUserService implements UserService {
             uploadProfileImage(user, request.newProfileImage());
         }
 
+        log.info("사용자 정보 수정 완료: userId={}", user.getId());
         return userMapper.toDto(user);
     }
 
     @Override
     @Transactional
     public void delete(UUID userId) {
+        log.warn("사용자 삭제 요청: userId={}", userId);
         User user = getUserEntity(userId);
         userRepository.delete(user);
+        log.info("사용자 삭제 완료: userId={}", userId);
     }
 
     // --------- 내부 메서드 구현 ---------
@@ -114,10 +122,12 @@ public class BasicUserService implements UserService {
     // 중복 가입 검증
     private void validateDuplicateUser(String username, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
+            log.warn("사용자 생성 실패 - 중복된 username: {}", username);
             throw new IllegalArgumentException("Username already exists: " + username);
         }
 
         if (userRepository.existsByEmail(email)) {
+            log.warn("사용자 생성 실패 - 중복된 email: {}", email);
             throw new IllegalArgumentException("Email already exists: " + email);
         }
     }

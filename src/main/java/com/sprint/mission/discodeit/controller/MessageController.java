@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Tag(name = "Message")
 @RestController
 @RequiredArgsConstructor
@@ -50,6 +52,7 @@ public class MessageController {
             @RequestPart("messageCreateRequest") @Valid CreateMessageRequestDto request,
             @Parameter(description = "Message 첨부 파일들") @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) throws IOException {
+        log.info("REST 요청 - Message 생성 시작");
 
         List<BinaryContentDto> attachmentDtos = new ArrayList<>();
         if(attachments != null && !attachments.isEmpty()){
@@ -75,6 +78,7 @@ public class MessageController {
     @RequestMapping(method = RequestMethod.PATCH, value = "/{messageId}")
     public ResponseEntity<MessageDto> update(@Parameter(description = "수정할 Message ID") @PathVariable UUID messageId,
                                              @Valid @RequestBody UpdateMessageRequestDto request){
+        log.info("REST 요청 - Message 내용 수정 시작: messageId={}", messageId);
         return ResponseEntity.ok(messageService.update(messageId, request));
     }
 
@@ -87,6 +91,7 @@ public class MessageController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/{messageId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@Parameter(description = "삭제할 Message ID") @PathVariable UUID messageId){
+        log.warn("REST 요청 - Message 삭제 시작: messageId={}", messageId);
         messageService.delete(messageId);
     }
 

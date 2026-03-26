@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -26,6 +28,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     @Transactional
     public BinaryContentDto create(CreateBinaryContentRequestDto request) {
+        log.info("첨부 파일 업로드 요청: fileName={}, size={}", request.fileName(), request.size());
+
         BinaryContent binaryContent = new BinaryContent(
                 request.fileName(),
                 request.contentType(),
@@ -34,6 +38,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         binaryContent = binaryContentRepository.save(binaryContent);
         binaryContentStorage.put(binaryContent.getId(), request.contents());
 
+        log.info("첨부 파일 업로드 완료: contentId={}", binaryContent.getId());
         return binaryContentMapper.toDto(binaryContent);
     }
 
@@ -58,8 +63,10 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     @Transactional
     public void delete(UUID contentId) {
+        log.warn("첨부 파일 삭제 요청: contentId={}", contentId);
         BinaryContent binaryContent = getBinaryContentEntity(contentId);
         binaryContentRepository.delete(binaryContent);
+        log.info("첨부 파일 삭제 완료: contentId={}", contentId);
     }
 
     // ------ 내부 메서드 -------

@@ -16,6 +16,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -46,6 +48,7 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional
     public MessageDto create(CreateMessageRequestDto request, List<BinaryContentDto> attachments) {
+        log.debug("메시지 생성 요청: channelId={}, authorId={}", request.channelId(), request.authorId());
 
         Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + request.channelId()));
@@ -56,6 +59,7 @@ public class BasicMessageService implements MessageService {
 
         if ((request.content() == null || request.content().trim().isEmpty())
                 && (attachments == null || attachments.isEmpty())) {
+            log.warn("메시지 생성 실패 - 텍스트 및 첨부파일 누락: authorId={}", request.authorId());
             throw new IllegalArgumentException("텍스트 내용이나 첨부파일 중 하나는 반드시 포함되어야 합니다.");
         }
 
@@ -80,6 +84,8 @@ public class BasicMessageService implements MessageService {
         messageRepository.save(message);
         // 메시지 생성 시 그 유저는 활동중임을 나타냄
         eventPublisher.publishEvent(new MessageSentEvent(request.authorId()));
+
+        log.info("메시지 생성 성공: messageId={}", message.getId());
 
         return messageMapper.toDto(message);
     }
@@ -116,22 +122,26 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional
     public MessageDto update(UUID messageId, UpdateMessageRequestDto request) {
-        Message message = getMessageEntity(messageId);
+        log.debug("메시지 수정 요청: messageId={}", messageId);
 
+        Message message = getMessageEntity(messageId);
         message.update(request.newContent());
 
+        log.info("메시지 수정 완료: messageId={}", message.getId());
         return messageMapper.toDto(message);
     }
 
     @Override
     @Transactional
     public void delete(UUID messageId) {
+        log.warn("메시지 삭제 요청: messageId={}", messageId);
         Message message = getMessageEntity(messageId);
 
         List<BinaryContent> attachmentsToDelete = new ArrayList<>(message.getAttachments());
         detachAttachments(message);
         deleteAttachedFiles(attachmentsToDelete);
 
+        log.info("메시지 삭제 완료: messageId={}", messageId);
         messageRepository.delete(message);
     }
 
