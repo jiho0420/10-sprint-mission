@@ -86,7 +86,7 @@ public class UserController {
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<UserDto> update(
             @Parameter(description = "수정할 User ID") @PathVariable UUID userId,
-            @RequestPart(value = "userUpdateRequest") UpdateUserRequestDto request,
+            @Valid @RequestPart(value = "userUpdateRequest") UpdateUserRequestDto request,
             @Parameter(description = "수정할 User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
         log.info("REST 요청 - User 정보 수정 시작: userId={}", userId);
@@ -137,7 +137,7 @@ public class UserController {
     })
     @RequestMapping(method = RequestMethod.PATCH, value = "/{userId}/userStatus")
     public ResponseEntity<UserStatusDto> updateStatus(@Parameter(description = "상태를 변경할 User ID") @PathVariable UUID userId,
-                                                      @RequestBody UpdateUserStatusRequestDto request){
+                                                      @Valid @RequestBody UpdateUserStatusRequestDto request){
         return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
     }
 
