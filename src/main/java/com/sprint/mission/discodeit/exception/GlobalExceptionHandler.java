@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -113,6 +114,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    // 404 not found
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
+        log.warn("요청 경로를 찾을 수 없음: {}", e.getResourcePath());
+
+        ErrorResponse response = ErrorResponse.builder()
+            .code("NOT_FOUND")
+            .message("요청하신 URL을 찾을 수 없습니다. 경로를 확인해주세요.")
+            .exceptionType(e.getClass().getSimpleName())
+            .status(HttpStatus.NOT_FOUND.value()) // 404
+            .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
     // 서버 에러: 최상위 예외 핸들러
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
@@ -127,4 +143,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus()).body(response);
     }
+
 }
