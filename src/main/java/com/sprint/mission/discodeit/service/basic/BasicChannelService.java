@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.channel.PrivateChannelUpdateException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -90,7 +91,7 @@ public class BasicChannelService implements ChannelService {
         Channel channel = getChannelEntity(channelId);
 
         if (channel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
+            throw new PrivateChannelUpdateException(channelId);
         }
         channel.update(request.newName(), request.newDescription());
 

@@ -7,6 +7,8 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageSentEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -18,10 +20,8 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,9 +51,9 @@ public class BasicMessageService implements MessageService {
         log.debug("메시지 생성 요청: channelId={}, authorId={}", request.channelId(), request.authorId());
 
         Channel channel = channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + request.channelId()));
+                .orElseThrow(() -> new ChannelNotFoundException(request.channelId()));
         User author = userRepository.findById(request.authorId())
-                .orElseThrow(() -> new NoSuchElementException("Author not found with id " + request.authorId()));
+                .orElseThrow(() -> new UserNotFoundException(request.authorId()));
 
         Message message = new Message(request.content(), channel, author);
 
