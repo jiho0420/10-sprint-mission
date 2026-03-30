@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.channel.PrivateChannelUpdateException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
@@ -115,7 +116,7 @@ public class BasicChannelService implements ChannelService {
     // 채널 엔티티 조회
     private Channel getChannelEntity(UUID channelId) {
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("Channel not found with id " + channelId));
+                .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
     private List<ChannelDto> mapChannelsToDtos(List<Channel> channels) {

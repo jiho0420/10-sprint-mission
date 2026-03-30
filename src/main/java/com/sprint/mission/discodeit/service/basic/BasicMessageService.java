@@ -8,6 +8,8 @@ import com.sprint.mission.discodeit.event.MessageSentEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.message.InvalidMessageContentException;
+import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.PageResponseMapper;
@@ -60,7 +62,7 @@ public class BasicMessageService implements MessageService {
         if ((request.content() == null || request.content().trim().isEmpty())
                 && (attachments == null || attachments.isEmpty())) {
             log.warn("메시지 생성 실패 - 텍스트 및 첨부파일 누락: authorId={}", request.authorId());
-            throw new IllegalArgumentException("텍스트 내용이나 첨부파일 중 하나는 반드시 포함되어야 합니다.");
+            throw new InvalidMessageContentException(request.authorId());
         }
 
         if (attachments != null && !attachments.isEmpty()) {
@@ -99,7 +101,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
         if (!channelRepository.existsById(channelId)) {
-            throw new NoSuchElementException("Channel not found with id " + channelId);
+            throw new ChannelNotFoundException(channelId);
         }
         Slice<Message> messageSlice;
         if (cursor == null) {
@@ -150,7 +152,7 @@ public class BasicMessageService implements MessageService {
     // 메시지 엔티티 조회
     private Message getMessageEntity(UUID messageId) {
         return messageRepository.findById(messageId)
-                .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
+                .orElseThrow(() -> new MessageNotFoundException(messageId));
     }
 
     private BinaryContentDto normalizeAttachment(BinaryContentDto dto) {

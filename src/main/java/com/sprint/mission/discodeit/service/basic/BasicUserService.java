@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -124,12 +125,12 @@ public class BasicUserService implements UserService {
     private void validateDuplicateUser(String username, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
             log.warn("사용자 생성 실패 - 중복된 username: {}", username);
-            throw new IllegalArgumentException("Username already exists: " + username);
+            throw new UserAlreadyExistsException("username", username);
         }
 
         if (userRepository.existsByEmail(email)) {
             log.warn("사용자 생성 실패 - 중복된 email: {}", email);
-            throw new IllegalArgumentException("Email already exists: " + email);
+            throw new UserAlreadyExistsException("email", email);
         }
     }
 }
