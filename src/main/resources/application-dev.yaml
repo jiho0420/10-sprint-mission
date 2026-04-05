@@ -2,6 +2,12 @@ server:
   port: 8080 # 개발 환경 서버 포트
 
 spring:
+  application:
+    name: discodeit
+  boot:
+    admin:
+      client:
+        url: http://localhost:9090
   datasource:
     url: jdbc:postgresql://localhost:5432/discodeit
     username: discodeit_user

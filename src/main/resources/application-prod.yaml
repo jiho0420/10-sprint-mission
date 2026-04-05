@@ -2,6 +2,12 @@ server:
   port: 80 # 운영 환경 서버 포트
 
 spring:
+  application:
+    name: discodeit
+  boot:
+    admin:
+      client:
+        url: ${SPRING_BOOT_ADMIN_CLIENT_URL}
   datasource:
     url: jdbc:postgresql://prod-db-server:5432/discodeit # 운영 데이터베이스 URL
     username: prod_user
