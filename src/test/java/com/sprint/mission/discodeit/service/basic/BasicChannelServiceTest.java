@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.channel.PrivateChannelUpdateException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class BasicChannelServiceTest {
+
     @Mock
     private ChannelRepository channelRepository;
     @Mock
@@ -57,10 +59,12 @@ class BasicChannelServiceTest {
     @DisplayName("Public 채널을 유효한 데이터로 생성합니다")
     void create_public_success() {
         // given
-        CreatePublicChannelRequestDto request = new CreatePublicChannelRequestDto("testChannel", "test description");
+        CreatePublicChannelRequestDto request = new CreatePublicChannelRequestDto("testChannel",
+            "test description");
         Channel channel = new Channel(ChannelType.PUBLIC, request.name(), request.description());
         ChannelDto expectedDto = new ChannelDto(
-            channel.getId(), channel.getName(), channel.getDescription(), channel.getType(), Instant.now(), List.of());
+            channel.getId(), channel.getName(), channel.getDescription(), channel.getType(),
+            Instant.now(), List.of());
 
         given(channelRepository.save(any(Channel.class))).willReturn(channel);
         given(channelMapper.toDto(any(Channel.class))).willReturn(expectedDto);
@@ -79,12 +83,15 @@ class BasicChannelServiceTest {
     void create_private_success() {
         // given
         UUID participantId = UUID.randomUUID();
-        CreatePrivateChannelRequestDto request = new CreatePrivateChannelRequestDto(List.of(participantId));
+        CreatePrivateChannelRequestDto request = new CreatePrivateChannelRequestDto(
+            List.of(participantId));
 
-        Channel channel = new Channel(ChannelType.PRIVATE, "testChannel", "test private description");
+        Channel channel = new Channel(ChannelType.PRIVATE, "testChannel",
+            "test private description");
         User participant = new User("testParticipant", "test@test.com", "password");
         ChannelDto expectedDto = new ChannelDto(
-            UUID.randomUUID(), channel.getName(), channel.getDescription(), channel.getType(), Instant.now(), List.of());
+            UUID.randomUUID(), channel.getName(), channel.getDescription(), channel.getType(),
+            Instant.now(), List.of());
 
         given(channelRepository.save(any(Channel.class))).willReturn(channel);
         given(userRepository.findById(participantId)).willReturn(Optional.of(participant));
@@ -96,7 +103,8 @@ class BasicChannelServiceTest {
         // then
         assertEquals(expectedDto, result);
         verify(channelRepository).save(any(Channel.class));
-        verify(readStatusRepository).save(any(ReadStatus.class));;
+        verify(readStatusRepository).save(any(ReadStatus.class));
+        ;
     }
 
     @Test
@@ -104,11 +112,14 @@ class BasicChannelServiceTest {
     void create_private_fail_userNotFound() {
         // given
         UUID notFoundUserId = UUID.randomUUID();
-        CreatePrivateChannelRequestDto request = new CreatePrivateChannelRequestDto(List.of(notFoundUserId));
-        Channel channel = new Channel(ChannelType.PRIVATE, "testChannel", "test private description");
+        CreatePrivateChannelRequestDto request = new CreatePrivateChannelRequestDto(
+            List.of(notFoundUserId));
+        Channel channel = new Channel(ChannelType.PRIVATE, "testChannel",
+            "test private description");
 
         given(channelRepository.save(any(Channel.class))).willReturn(channel);
-        given(userRepository.findById(notFoundUserId)).willThrow(new UserNotFoundException(notFoundUserId));
+        given(userRepository.findById(notFoundUserId)).willThrow(
+            new UserNotFoundException(notFoundUserId));
 
         // when, then
         assertThrows(UserNotFoundException.class, () -> basicChannelService.createPrivate(request));
@@ -127,12 +138,15 @@ class BasicChannelServiceTest {
         ReflectionTestUtils.setField(channel, "id", channelId);
 
         ChannelDto expectedDto = new ChannelDto(
-            channel.getId(), channel.getName(), channel.getDescription(), channel.getType(), Instant.now(), List.of());
+            channel.getId(), channel.getName(), channel.getDescription(), channel.getType(),
+            Instant.now(), List.of());
 
-        given(channelRepository.findAccessibleChannelsByUserId(userId)).willReturn(List.of(channel));
+        given(channelRepository.findAccessibleChannelsByUserId(userId)).willReturn(
+            List.of(channel));
 
         given(readStatusRepository.findAllByChannelIdIn(anyList())).willReturn(List.of());
-        given(messageRepository.findTopByChannelIdOrderByCreatedAtDesc(any(UUID.class))).willReturn(Optional.empty());
+        given(messageRepository.findTopByChannelIdOrderByCreatedAtDesc(any(UUID.class))).willReturn(
+            Optional.empty());
         given(channelMapper.toDtoWithContext(any(), any(), any())).willReturn(expectedDto);
 
         // when
@@ -146,7 +160,7 @@ class BasicChannelServiceTest {
 
     @Test
     @DisplayName("유저가 접근 가능한 채널이 없을 경우 빈 리스트를 반환합니다.")
-    void findAllByUserId_emptyList(){
+    void findAllByUserId_emptyList() {
         // given
         UUID userId = UUID.randomUUID();
         given(channelRepository.findAccessibleChannelsByUserId(userId)).willReturn(List.of());
@@ -165,7 +179,8 @@ class BasicChannelServiceTest {
         UUID channelId = UUID.randomUUID();
         UpdateChannelRequestDto request = new UpdateChannelRequestDto("newName", "newDescription");
         Channel channel = new Channel(ChannelType.PUBLIC, "oldName", "oldDescription");
-        ChannelDto expectedDto = new ChannelDto(channelId, request.newName(), request.newDescription(), channel.getType(), Instant.now(), List.of());
+        ChannelDto expectedDto = new ChannelDto(channelId, request.newName(),
+            request.newDescription(), channel.getType(), Instant.now(), List.of());
 
         given(channelRepository.findById(channelId)).willReturn(Optional.of(channel));
         given(channelMapper.toDto(channel)).willReturn(expectedDto);
@@ -188,7 +203,8 @@ class BasicChannelServiceTest {
         given(channelRepository.findById(notFoundChannelId)).willReturn(Optional.empty());
 
         // when, then
-        assertThrows(ChannelNotFoundException.class, () -> basicChannelService.update(notFoundChannelId, request));
+        assertThrows(ChannelNotFoundException.class,
+            () -> basicChannelService.update(notFoundChannelId, request));
     }
 
     @Test
@@ -212,13 +228,41 @@ class BasicChannelServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 채널은 삭제할 수 없습니다.")
-    void delete_fail_not_found_channel(){
+    void delete_fail_not_found_channel() {
         // given
         UUID notFoundChannelId = UUID.randomUUID();
 
         given(channelRepository.findById(notFoundChannelId)).willReturn(Optional.empty());
 
         // when, then
-        assertThrows(ChannelNotFoundException.class, () -> basicChannelService.delete(notFoundChannelId));
+        assertThrows(ChannelNotFoundException.class,
+            () -> basicChannelService.delete(notFoundChannelId));
+    }
+
+    @Test
+    @DisplayName("Private 채널을 수정하려고 시도하면 PrivateChannelUpdateException 예외가 발생한다.")
+    void update_private_channel_exception() {
+        // given: 타입이 PRIVATE인 채널을 준비
+        UUID channelId = UUID.randomUUID();
+        UpdateChannelRequestDto request = new UpdateChannelRequestDto("newName", "newDescription");
+        Channel privateChannel = new Channel(ChannelType.PRIVATE, "oldName", "oldDescription");
+
+        given(channelRepository.findById(channelId)).willReturn(Optional.of(privateChannel));
+
+        // when & then: Private 채널은 이름/설명 수정이 불가하므로 예외 발생
+        assertThrows(
+            PrivateChannelUpdateException.class,
+            () -> basicChannelService.update(channelId, request));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 채널 ID로 단일 조회 시 ChannelNotFoundException 예외가 발생한다.")
+    void find_channel_not_found_exception() {
+        // given
+        UUID notFoundChannelId = UUID.randomUUID();
+        given(channelRepository.findById(notFoundChannelId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThrows(ChannelNotFoundException.class, () -> basicChannelService.find(notFoundChannelId));
     }
 }

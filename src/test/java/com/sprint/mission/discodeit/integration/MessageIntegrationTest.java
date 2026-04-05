@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import jakarta.persistence.EntityManager;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,5 +138,69 @@ class MessageIntegrationTest {
             .andExpect(jsonPath("$.content").isArray())
             // 메시지가 정상적으로 2개 들어있는지 검증
             .andExpect(jsonPath("$.content.length()").value(2));
+    }
+
+    @Test
+    @DisplayName("내용이 없는 메시지 생성 시 400 Bad Request가 발생한다.")
+    void create_message_empty_content_exception() throws Exception {
+        // given
+        UserDto author = userService.create(new CreateUserRequestDto("emptyUser", "empty@test.com", "pass1234", null));
+        ChannelDto channel = channelService.createPublic(new CreatePublicChannelRequestDto("emptyChannel", "desc"));
+        em.flush();
+        em.clear();
+
+        // content가 null이고 첨부파일도 없는 상태
+        CreateMessageRequestDto request = new CreateMessageRequestDto(null, channel.id(), author.id(), null);
+        MockMultipartFile requestPart = new MockMultipartFile(
+            "messageCreateRequest", "request.json", MediaType.APPLICATION_JSON_VALUE, objectMapper.writeValueAsBytes(request)
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/messages")
+                .file(requestPart)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest()); // 400 에러 검증
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 채널에 메시지 생성 시 404 Not Found가 발생한다.")
+    void create_message_invalid_channel_exception() throws Exception {
+        // given
+        UserDto author = userService.create(new CreateUserRequestDto("fakeChUser", "fakeCh@test.com", "pass1234", null));
+        UUID fakeChannelId = UUID.randomUUID(); // 가짜 채널 ID
+        em.flush();
+        em.clear();
+
+        CreateMessageRequestDto request = new CreateMessageRequestDto("Hello!", fakeChannelId, author.id(), null);
+        MockMultipartFile requestPart = new MockMultipartFile(
+            "messageCreateRequest", "request.json", MediaType.APPLICATION_JSON_VALUE, objectMapper.writeValueAsBytes(request)
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/messages")
+                .file(requestPart)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound()); // 404 에러 검증
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 작성자로 메시지 생성 시 404 Not Found가 발생한다.")
+    void create_message_invalid_author_exception() throws Exception {
+        // given
+        ChannelDto channel = channelService.createPublic(new CreatePublicChannelRequestDto("fakeAuthChannel", "desc"));
+        UUID fakeAuthorId = UUID.randomUUID(); // 가짜 유저 ID
+        em.flush();
+        em.clear();
+
+        CreateMessageRequestDto request = new CreateMessageRequestDto("Hello!", channel.id(), fakeAuthorId, null);
+        MockMultipartFile requestPart = new MockMultipartFile(
+            "messageCreateRequest", "request.json", MediaType.APPLICATION_JSON_VALUE, objectMapper.writeValueAsBytes(request)
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/messages")
+                .file(requestPart)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound()); // 404 에러 검증
     }
 }

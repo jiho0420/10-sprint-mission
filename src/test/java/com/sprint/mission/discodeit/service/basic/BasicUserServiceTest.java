@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BasicUserServiceTest {
@@ -72,7 +73,7 @@ class BasicUserServiceTest {
 
     @Test
     @DisplayName("이미 존재하는 username으로 가입 시도 시 예외가 발생해야 합니다.")
-    void create_fail_duplicateUsername() {
+    void create_fail_duplicate_username() {
         // given
         CreateUserRequestDto request = new CreateUserRequestDto("duplicateUser", "test@test.com", "password123", null);
         User existingUser = new User("duplicateUser", "old@test.com", "oldPassword");
@@ -85,7 +86,7 @@ class BasicUserServiceTest {
 
     @Test
     @DisplayName("이미 존재하는 email로 가입 시도 시 예외가 발생해야 합니다.")
-    void create_fail_duplicateEmail() {
+    void create_fail_duplicate_email() {
         // given
         CreateUserRequestDto request = new CreateUserRequestDto("newUser", "duplicate@test.com", "password123", null);
 
@@ -164,5 +165,16 @@ class BasicUserServiceTest {
 
         // when, then
         assertThrows(UserNotFoundException.class, () -> basicUserService.delete(notFoundUserId));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 유저 ID로 조회하면 UserNotFoundException 예외가 발생한다.")
+    void find_user_not_found_exception() {
+        // given
+        UUID fakeId = UUID.randomUUID();
+        when(userRepository.findById(fakeId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(UserNotFoundException.class, () -> basicUserService.find(fakeId));
     }
 }

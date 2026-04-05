@@ -120,4 +120,35 @@ class ChannelIntegrationTest {
         boolean exists = channelRepository.existsById(savedChannel.id());
         assertThat(exists).isFalse();
     }
+
+    @Test
+    @DisplayName("프라이빗 채널 생성 시 참여자가 없으면 400 Bad Request가 발생한다.")
+    void create_private_channel_empty_participants_exception() throws Exception {
+        // given: 빈 참여자 리스트 (DTO Validation 에러 유도)
+        CreatePrivateChannelRequestDto request = new CreatePrivateChannelRequestDto(List.of());
+
+        // when & then
+        mockMvc.perform(post("/api/channels/private")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest()); // 400 에러 검증
+    }
+
+    @Test
+    @DisplayName("프라이빗 채널 수정 시 400 Bad Request가 발생한다.")
+    void update_private_channel_exception() throws Exception {
+        // given: 유저와 프라이빗 채널을 먼저 생성
+        UserDto userDto = userService.create(new CreateUserRequestDto("privUpdater", "privUp@test.com", "pass1234", null));
+        ChannelDto privateChannel = channelService.createPrivate(new CreatePrivateChannelRequestDto(List.of(userDto.id())));
+        em.flush();
+        em.clear();
+
+        UpdateChannelRequestDto request = new UpdateChannelRequestDto("New Name", "New Desc");
+
+        // when & then: 프라이빗 채널에 수정(PATCH) 시도 시 비즈니스 예외 발생 확인
+        mockMvc.perform(patch("/api/channels/{channelId}", privateChannel.id())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest()); // 400 에러 검증
+    }
 }

@@ -215,4 +215,47 @@ class BasicMessageServiceTest {
         // when & then
         assertThrows(ChannelNotFoundException.class, () -> basicMessageService.findAllByChannelId(channelId, null, pageable));
     }
+
+    @Test
+    @DisplayName("존재하지 않는 채널에 메시지를 생성하려고 하면 ChannelNotFoundException 예외가 발생한다.")
+    void create_message_channel_not_found_exception() {
+        // given
+        UUID notFoundChannelId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
+        CreateMessageRequestDto request = new CreateMessageRequestDto("Hello", notFoundChannelId, authorId, null);
+
+        // 채널 조회 시 빈 값(Optional.empty) 반환하도록 설정
+        given(channelRepository.findById(notFoundChannelId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThrows(ChannelNotFoundException.class, () -> basicMessageService.create(request, null));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 작성자로 메시지를 생성하려고 하면 UserNotFoundException 예외가 발생한다.")
+    void create_message_user_not_found_exception() {
+        // given
+        UUID channelId = UUID.randomUUID();
+        UUID notFoundAuthorId = UUID.randomUUID();
+        CreateMessageRequestDto request = new CreateMessageRequestDto("Hello", channelId, notFoundAuthorId, null);
+
+        // 채널은 정상 존재하지만 유저는 존재하지 않도록 설정
+        Channel channel = new Channel(ChannelType.PUBLIC, "Test Channel", "Desc");
+        given(channelRepository.findById(channelId)).willReturn(Optional.of(channel));
+        given(userRepository.findById(notFoundAuthorId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThrows(com.sprint.mission.discodeit.exception.user.UserNotFoundException.class, () -> basicMessageService.create(request, null));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 메시지 ID로 단일 조회 시 MessageNotFoundException 예외가 발생한다.")
+    void find_message_not_found_exception() {
+        // given
+        UUID notFoundMessageId = UUID.randomUUID();
+        given(messageRepository.findById(notFoundMessageId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThrows(MessageNotFoundException.class, () -> basicMessageService.find(notFoundMessageId));
+    }
 }
