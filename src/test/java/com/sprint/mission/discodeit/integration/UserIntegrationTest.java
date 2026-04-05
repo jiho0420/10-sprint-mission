@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import jakarta.persistence.EntityManager;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,5 +125,35 @@ class UserIntegrationTest {
         // then
         boolean exists = userRepository.existsById(savedUser.id());
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 유저 수정 시 404 Not Found가 발생한다.")
+    void update_user_not_found_exception() throws Exception {
+        // given: 완전 엉뚱한(존재하지 않는) UUID 생성
+        UUID fakeUserId = UUID.randomUUID();
+
+        UpdateUserRequestDto request = new UpdateUserRequestDto("newUser", "new@test.com", "newPass123", null);
+        MockMultipartFile requestPart = new MockMultipartFile(
+            "userUpdateRequest", "request.json", MediaType.APPLICATION_JSON_VALUE, objectMapper.writeValueAsBytes(request)
+        );
+
+        // when & then: 가짜 ID로 수정(PATCH) 시도 시 404 에러 검증
+        mockMvc.perform(multipart("/api/users/{userId}", fakeUserId)
+                .file(requestPart)
+                .with(req -> { req.setMethod("PATCH"); return req; })
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 유저 삭제 시 404 Not Found가 발생한다.")
+    void delete_user_not_found_exception() throws Exception {
+        // given: 완전 엉뚱한(존재하지 않는) UUID 생성
+        UUID fakeUserId = UUID.randomUUID();
+
+        // when & then: 가짜 ID로 삭제(DELETE) 시도 시 404 에러 검증
+        mockMvc.perform(delete("/api/users/{userId}", fakeUserId))
+            .andExpect(status().isNotFound());
     }
 }
