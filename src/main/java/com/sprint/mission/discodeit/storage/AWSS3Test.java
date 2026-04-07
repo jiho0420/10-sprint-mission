@@ -81,7 +81,7 @@ public class AWSS3Test {
     }
 
     /**
-     * 1. 업로드 테스트 메소드
+     * 업로드 테스트 메소드
      */
     public static void testUpload(String objectKey) {
         String testContent = "test file for S3";
@@ -96,7 +96,7 @@ public class AWSS3Test {
     }
 
     /**
-     * 2. 다운로드 테스트 메소드
+     * 다운로드 테스트 메소드
      */
     public static void testDownload(String objectKey) throws IOException {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -111,7 +111,7 @@ public class AWSS3Test {
     }
 
     /**
-     * 3. PresignedUrl 생성 테스트 메소드
+     * PresignedUrl 생성 테스트 메소드
      */
     public static void testPresignedUrl(String objectKey) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()

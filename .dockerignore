@@ -8,3 +8,6 @@ admin/build/
 .logs/
 *.log
 README.md
+.env
+.discodeit/
+uploads/
