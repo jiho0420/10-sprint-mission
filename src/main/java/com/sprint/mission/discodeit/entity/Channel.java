@@ -1,39 +1,44 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public class Channel extends BaseEntity{
-    private String channelName;
-    private List<User> participants = new ArrayList<>();
-    private List<Message> channelMessages = new ArrayList<>();
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.UUID;
 
-    public String getChannelName() {
-        return channelName;
+@Entity
+@Table(name = "channels")
+@Getter
+@NoArgsConstructor
+public class Channel extends BaseUpdatableEntity {
+
+    @Column(length = 100)
+    private String name;
+
+    @Column(length = 500)
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private ChannelType type;
+
+    public Channel(ChannelType type, String name, String description) {
+        this.type = type;
+        this.name = name;
+        this.description = description;
     }
 
-    public void updateChannelInfo(String newChannelName){
-        this.channelName = newChannelName;
-        super.setUpdatedAt(System.currentTimeMillis());
-    }
-
-    public List<User> getParticipants() {
-        return participants;
-    }
-
-    public void addParticipant(User user){
-       this.participants.add(user);
-    }
-
-    public List<Message> getChannelMessages() {
-        return channelMessages;
-    }
-
-    public void addMessage(Message message){
-        this.channelMessages.add(message);
-    }
-
-    public Channel(String channelName) {
-        this.channelName = channelName;
+    public void update(String newName, String newDescription) {
+        if (newName != null && !newName.equals(this.name)) {
+            this.name = newName;
+        }
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+        }
     }
 }

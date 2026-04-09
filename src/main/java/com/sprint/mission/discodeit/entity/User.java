@@ -1,62 +1,51 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public class User extends BaseEntity {
+@Entity
+@Table(name = "users")
+@Getter
+@NoArgsConstructor
+public class User extends BaseUpdatableEntity {
+
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
-    private String password;
+
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
-    private List<Channel> myChannels = new ArrayList<>();
-    private List<Message> myMessages = new ArrayList<>();
 
-    public String getUsername() {
-        return username;
-    }
+    @Column(nullable = false, length = 60)
+    private String password;
 
-    public String getPassword() {
-        return password;
-    }
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_id")
+    private BinaryContent profile;
 
-    public String getEmail() {
-        return email;
-    }
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserStatus status;
 
-    public void updateUsername(String newUsername){
-        this.username = newUsername;
-        this.setUpdatedAt(System.currentTimeMillis());
-    }
-
-    public void updateEmail(String newEmail){
-        this.email = newEmail;
-        this.setUpdatedAt(System.currentTimeMillis());
-    }
-
-    public void updatePassword(String newPassword){
-        this.password = newPassword;
-        this.setUpdatedAt(System.currentTimeMillis());
-    }
-
-    public List<Message> getMyMessages() {
-        return myMessages;
-    }
-
-    public List<Channel> getMyChannels() {
-        return myChannels;
-    }
-
-    public void addMessage(Message message){
-        this.myMessages.add(message);
-    }
-
-    public User(String username, String password, String email) {
+    public User(String username, String email, String password) {
         this.username = username;
-        this.password = password;
         this.email = email;
+        this.password = password;
     }
 
-    @Override
-    public String toString() {
-        return "이름: " + username + ", 이메일: " + email + ", 비밀번호: " + password;
+    public void update(String newUsername, String newEmail, String newPassword) {
+        if (newUsername != null && !newUsername.isBlank() && !newUsername.equals(this.username)) {
+            this.username = newUsername;
+        }
+        if (newEmail != null && !newEmail.isBlank() && !newEmail.equals(this.email)) {
+            this.email = newEmail;
+        }
+        if (newPassword != null && !newPassword.isBlank() && !newPassword.equals(this.password)) {
+            this.password = newPassword;
+        }
+    }
+
+    public void updateProfileImageId(BinaryContent profile) {
+        this.profile = profile;
     }
 }
