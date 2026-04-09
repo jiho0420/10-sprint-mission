@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
@@ -45,9 +46,9 @@ public class MessageRepositoryTest {
 
         // 최신순 정렬 및 커서 테스트를 위한 시간차 메시지 생성
         msg1 = messageRepository.save(new Message("First Message", channel, author));
-        Thread.sleep(10);
+        Thread.sleep(1000);
         msg2 = messageRepository.save(new Message("Second Message", channel, author));
-        Thread.sleep(10);
+        Thread.sleep(1000);
         msg3 = messageRepository.save(new Message("Third Message", channel, author));
     }
 
@@ -70,7 +71,7 @@ public class MessageRepositoryTest {
     void find_by_channel_id_and_created_at_less_than_cursor_success() {
         // given
         Instant cursor = msg3.getCreatedAt(); // 가장 최신 메시지(msg3)의 시간을 커서로 설정
-        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // when (커서 시간 이전의 메시지들 조회)
         Slice<Message> slice = messageRepository.findByChannelIdAndCreatedAtLessThan(channel.getId(), cursor, pageRequest);
