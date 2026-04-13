@@ -66,3 +66,7 @@ jacocoTestReport {
         html.required = true
     }
 }
+
+bootJar {
+    archiveFileName = 'app.jar'
+}

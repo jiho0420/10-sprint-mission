@@ -34,14 +34,18 @@ WORKDIR /app
 # ====== 보안 강화 ======
 # 런타임에서도 root가 아닌 일반 유저로 앱을 실행하도록 설정
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+
+# 일반 유저에게 권한 부여
+RUN mkdir -p /app/.logs && chown -R appuser:appgroup /app
 
 # ====== 멀티 스테이지 최적화 ======
-COPY --from=builder --chown=appuser:appgroup /app/build/libs/*SNAPSHOT.jar app.jar
+COPY --from=builder --chown=appuser:appgroup /app/build/libs/app.jar /app/app.jar
+
+USER appuser
 
 # 애플리케이션 포트 노출 및 환경 변수 설정
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=prod
 
 # 컨테이너 시작 시 JAR 실행
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
