@@ -7,7 +7,10 @@ spring:
         instance:
           name: discodeit
   profiles:
-    active: dev  # 기본 프로파일
+    group:
+      dev: "common, dev"
+      prod: "common, prod"
+      test: "common, test"
 
 discodeit:
   storage:
