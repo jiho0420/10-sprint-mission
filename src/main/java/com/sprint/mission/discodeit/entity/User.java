@@ -61,8 +61,4 @@ public class User extends BaseUpdatableEntity {
     public void updateProfileImageId(BinaryContent profile) {
         this.profile = profile;
     }
-
-    public void assignRole(Role role) {
-        this.role = role;
-    }
 }

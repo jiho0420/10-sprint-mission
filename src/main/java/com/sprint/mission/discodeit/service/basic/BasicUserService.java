@@ -4,7 +4,7 @@ import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.CreateUserRequestDto;
 import com.sprint.mission.discodeit.dto.UpdateUserRequestDto;
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.UserRoleUpdateRequest;
+import com.sprint.mission.discodeit.dto.UserRoleUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -96,11 +95,13 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserDto updateRole(UserRoleUpdateRequest request) {
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다: " + request.userId()));
+    @Transactional
+    public UserDto updateRole(UserRoleUpdateRequestDto request) {
+        log.warn("사용자 권한 변경 요청: userId={}, newRole={}", request.userId(), request.newRole());
+        User user = getUserEntity(request.userId());
         user.updateRole(request.newRole());
-        return userMapper.toDto(userRepository.save(user));
+        log.info("사용자 권한 변경 완료: userId={}, role={}", user.getId(), user.getRole());
+        return userMapper.toDto(user);
     }
 
     @Override
