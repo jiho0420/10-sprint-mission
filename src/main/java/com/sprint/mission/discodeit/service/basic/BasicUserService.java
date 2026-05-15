@@ -4,7 +4,9 @@ import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.CreateUserRequestDto;
 import com.sprint.mission.discodeit.dto.UpdateUserRequestDto;
 import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.UserRoleUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
@@ -46,7 +48,7 @@ public class BasicUserService implements UserService {
         validateDuplicateUser(request.username(), request.email());
 
         String encodedPassword = passwordEncoder.encode(request.password());
-        User user = new User(request.username(), request.email(), encodedPassword);
+        User user = new User(request.username(), request.email(), encodedPassword, Role.USER);
         uploadProfileImage(user, request.profileImage());
 
         userRepository.save(user);
@@ -91,6 +93,14 @@ public class BasicUserService implements UserService {
 
         log.info("사용자 정보 수정 완료: userId={}", user.getId());
         return userMapper.toDto(user);
+    }
+
+    @Override
+    public UserDto updateRole(UserRoleUpdateRequest request) {
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다: " + request.userId()));
+        user.updateRole(request.newRole());
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
