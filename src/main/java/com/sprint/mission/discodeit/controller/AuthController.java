@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +28,7 @@ public class AuthController {
     @RequestMapping(method = RequestMethod.GET, value = "/csrf-token")
     public ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken) {
         log.debug("CSRF 토큰 요청: {}", csrfToken.getToken());
-        return ResponseEntity.status(HttpStatus.NON_AUTHORITATIVE_INFORMATION).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/me")
@@ -37,7 +36,7 @@ public class AuthController {
         return ResponseEntity.ok(userDetails.getUserDto());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // 권한 검증은 서비스 메서드(@PreAuthorize)에서 수행
     @RequestMapping(method = RequestMethod.PUT, value = "/role")
     public ResponseEntity<UserDto> updateRole(@Valid @RequestBody UserRoleUpdateRequestDto request) {
         return ResponseEntity.ok(userService.updateRole(request));

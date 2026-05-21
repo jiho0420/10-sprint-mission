@@ -19,6 +19,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,6 +97,7 @@ public class BasicUserService implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public UserDto updateRole(UserRoleUpdateRequestDto request) {
         log.warn("사용자 권한 변경 요청: userId={}, newRole={}", request.userId(), request.newRole());
         User user = getUserEntity(request.userId());
