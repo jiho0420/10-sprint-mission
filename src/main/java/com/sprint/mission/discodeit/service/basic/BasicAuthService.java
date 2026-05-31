@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.JwtRefreshResultDto;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.exception.auth.InvalidRefreshTokenException;
+import com.sprint.mission.discodeit.security.JwtInformation;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.security.JwtTokenProvider;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -21,6 +23,7 @@ public class BasicAuthService implements AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
+    private final JwtRegistry jwtRegistry;
 
     @Override
     public JwtRefreshResultDto refresh(String refreshToken) {
@@ -34,6 +37,11 @@ public class BasicAuthService implements AuthService {
         } catch (RuntimeException e) {
             log.debug("리프레시 토큰 검증 실패: {}", e.getMessage());
             throw new InvalidRefreshTokenException("invalid");
+        }
+
+        // 레지스트리에 등록된 토큰인지 검증 (재사용·강제 무효화 방어)
+        if (!jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
+            throw new InvalidRefreshTokenException("not-registered");
         }
 
         UUID userId;
@@ -52,6 +60,12 @@ public class BasicAuthService implements AuthService {
         );
         String newAccessToken = jwtTokenProvider.generateAccessToken(newClaims, subject);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(subject);
+
+        // 토큰 로테이션 (기존 JwtInformation의 토큰만 교체 — 식별자 유지)
+        jwtRegistry.rotateJwtInformation(
+                refreshToken,
+                new JwtInformation(userDto, newAccessToken, newRefreshToken)
+        );
 
         return new JwtRefreshResultDto(userDto, newAccessToken, newRefreshToken);
     }

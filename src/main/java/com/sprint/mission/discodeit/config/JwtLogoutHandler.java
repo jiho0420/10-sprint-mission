@@ -1,9 +1,12 @@
 package com.sprint.mission.discodeit.config;
 
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.security.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -13,7 +16,10 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtLogoutHandler implements LogoutHandler {
+
+    private final JwtRegistry jwtRegistry;
 
     @Override
     public void logout(HttpServletRequest request,
@@ -24,6 +30,9 @@ public class JwtLogoutHandler implements LogoutHandler {
             log.debug("비인증 상태의 로그아웃 요청 — 쿠키 정리만 수행");
         } else {
             log.info("로그아웃: principal={}", authentication.getName());
+            if (authentication.getPrincipal() instanceof DiscodeitUserDetails ud) {
+                jwtRegistry.invalidateJwtInformationByUserId(ud.getUserDto().id());
+            }
         }
 
         // 요청 쿠키에서 REFRESH_TOKEN 존재 여부 확인
