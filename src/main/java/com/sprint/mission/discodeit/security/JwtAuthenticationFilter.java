@@ -24,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final DiscodeitUserDetailsService userDetailsService;
+    private final JwtRegistry jwtRegistry;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -33,14 +34,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null) {
             try {
                 Map<String, Object> claims = jwtTokenProvider.getClaims(token);
-                String username = (String) claims.get("username");
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
+                if (!jwtRegistry.hasActiveJwtInformationByAccessToken(token)) {
+                    log.debug("JWT 레지스트리에 등록되지 않은 토큰, 익명으로 처리");
+                    SecurityContextHolder.clearContext();
+                } else {
+                    String username = (String) claims.get("username");
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             } catch (RuntimeException e) {
                 log.debug("JWT 인증 실패, 익명으로 처리: {}", e.getMessage());
                 SecurityContextHolder.clearContext();

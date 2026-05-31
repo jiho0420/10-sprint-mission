@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.JwtDto;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.security.JwtInformation;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.security.JwtTokenProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +29,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final ObjectMapper objectMapper;
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtRegistry jwtRegistry;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -44,6 +47,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
         );
         String accessToken = jwtTokenProvider.generateAccessToken(claims, subject);
         String refreshToken = jwtTokenProvider.generateRefreshToken(subject);
+
+        // 동시 로그인 제한 정책에 따라 등록 (기존 세션은 registry 내부에서 자동 무효화)
+        jwtRegistry.registerJwtInformation(new JwtInformation(userDto, accessToken, refreshToken));
 
         ResponseCookie refreshCookie = ResponseCookie.from(
                         JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME, refreshToken)
