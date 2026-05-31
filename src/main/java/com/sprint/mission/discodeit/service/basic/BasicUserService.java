@@ -15,6 +15,7 @@ import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class BasicUserService implements UserService {
     private final BinaryContentStorage binaryContentStorage;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtRegistry jwtRegistry;
 
     @Override
     @Transactional
@@ -103,6 +105,10 @@ public class BasicUserService implements UserService {
         User user = getUserEntity(request.userId());
         user.updateRole(request.newRole());
         log.info("사용자 권한 변경 완료: userId={}, role={}", user.getId(), user.getRole());
+
+        // 권한 변경 즉시 기존 세션 무효화 → 재로그인 시 새 권한 반영
+        jwtRegistry.invalidateJwtInformationByUserId(user.getId());
+
         return userMapper.toDto(user);
     }
 
