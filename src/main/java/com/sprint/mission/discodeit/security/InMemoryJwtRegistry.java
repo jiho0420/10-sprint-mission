@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -86,6 +87,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     }
 
     @Override
+    @Scheduled(fixedDelay = 1000 * 60 * 5)
     public void clearExpiredJwtInformation() {
         // 리프레시 토큰이 만료된 항목만 제거 (액세스 토큰은 정상적인 재발급 대상)
         origin.forEach((userId, q) -> {
