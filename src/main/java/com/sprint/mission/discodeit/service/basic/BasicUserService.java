@@ -101,7 +101,7 @@ public class BasicUserService implements UserService {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public UserDto updateRole(UserRoleUpdateRequestDto request) {
-        log.warn("사용자 권한 변경 요청: userId={}, newRole={}", request.userId(), request.newRole());
+        log.info("사용자 권한 변경 요청: userId={}, newRole={}", request.userId(), request.newRole());
         User user = getUserEntity(request.userId());
         user.updateRole(request.newRole());
         log.info("사용자 권한 변경 완료: userId={}, role={}", user.getId(), user.getRole());
@@ -115,7 +115,7 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public void delete(UUID userId) {
-        log.warn("사용자 삭제 요청: userId={}", userId);
+        log.info("사용자 삭제 요청: userId={}", userId);
         User user = getUserEntity(userId);
         userRepository.delete(user);
         log.info("사용자 삭제 완료: userId={}", userId);
