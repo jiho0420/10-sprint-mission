@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageSentEvent;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
@@ -76,7 +77,7 @@ public class BasicMessageService implements MessageService {
 
                 content = binaryContentRepository.save(content);
                 if(normalized.bytes() != null){
-                    binaryContentStorage.put(content.getId(), normalized.bytes());
+                    eventPublisher.publishEvent(new BinaryContentCreatedEvent(content.getId(), normalized.bytes()));
                 }
 
                 message.addAttachment(content);
