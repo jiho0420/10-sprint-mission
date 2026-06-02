@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
+import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
@@ -106,11 +107,14 @@ public class BasicUserService implements UserService {
     public UserDto updateRole(UserRoleUpdateRequestDto request) {
         log.info("사용자 권한 변경 요청: userId={}, newRole={}", request.userId(), request.newRole());
         User user = getUserEntity(request.userId());
+        Role previousRole = user.getRole();           // 변경 전 권한 캡처
         user.updateRole(request.newRole());
         log.info("사용자 권한 변경 완료: userId={}, role={}", user.getId(), user.getRole());
 
         // 권한 변경 즉시 기존 세션 무효화 → 재로그인 시 새 권한 반영
         jwtRegistry.invalidateJwtInformationByUserId(user.getId());
+        // 권한 변경 당사자에게 알림을 생성하기 위한 이벤트 발행
+        eventPublisher.publishEvent(new RoleUpdatedEvent(user.getId(), previousRole, request.newRole()));
 
         return userMapper.toDto(user);
     }

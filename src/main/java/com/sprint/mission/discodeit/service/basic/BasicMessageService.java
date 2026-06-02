@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.MessageSentEvent;
+import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
@@ -87,6 +88,10 @@ public class BasicMessageService implements MessageService {
         messageRepository.save(message);
         // 메시지 생성 시 그 유저는 활동중임을 나타냄
         eventPublisher.publishEvent(new MessageSentEvent(request.authorId()));
+        // 알림 대상에게 알림을 생성하기 위한 이벤트 발행
+        eventPublisher.publishEvent(new MessageCreatedEvent(
+                channel.getId(), channel.getName(),
+                author.getId(), author.getUsername(), request.content()));
 
         log.info("메시지 생성 성공: messageId={}", message.getId());
 
