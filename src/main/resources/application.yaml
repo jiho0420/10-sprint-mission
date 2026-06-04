@@ -47,6 +47,9 @@ logging:
     root: INFO
 
 management:
+  observations:
+    annotations:
+      enabled: true
   endpoint:
     health:
       show-details: always
