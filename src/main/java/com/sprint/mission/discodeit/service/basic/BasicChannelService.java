@@ -16,6 +16,8 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "channels", allEntries = true)
     @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     public ChannelDto createPublic(CreatePublicChannelRequestDto request) {
         log.info("Public 채널 생성 요청: name={}", request.name());
@@ -51,6 +54,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "channels", allEntries = true)
     public ChannelDto createPrivate(CreatePrivateChannelRequestDto request) {
         log.debug("Private 채널 생성 요청");
         // 명세에 name이 없으므로 서버에서 기본 이름 자동 생성
@@ -76,6 +80,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
+    @Cacheable(value = "channels", key = "#userId")
     public List<ChannelDto> findAllByUserId(UUID userId) {
         List<Channel> channels = channelRepository.findAccessibleChannelsByUserId(userId);
         return mapChannelsToDtos(channels);
@@ -89,6 +94,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "channels", allEntries = true)
     @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     public ChannelDto update(UUID channelId, UpdateChannelRequestDto request) {
         log.debug("채널 정보 수정 요청: channelId={}", channelId);
@@ -105,6 +111,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "channels", allEntries = true)
     @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     public void delete(UUID channelId) {
         log.warn("채널 삭제 요청: channelId={}", channelId);

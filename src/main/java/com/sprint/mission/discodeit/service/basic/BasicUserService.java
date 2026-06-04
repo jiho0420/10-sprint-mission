@@ -22,6 +22,8 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,6 +51,7 @@ public class BasicUserService implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public UserDto create(CreateUserRequestDto request) {
         log.debug("사용자 가입 요청: username={}, email={}", request.username(), request.email());
         validateDuplicateUser(request.username(), request.email());
@@ -79,6 +82,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
+    @Cacheable("users")
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
                 .map(userMapper::toDto)
@@ -87,6 +91,7 @@ public class BasicUserService implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public UserDto update(UUID userId, UpdateUserRequestDto request) {
         log.debug("사용자 정보 수정 요청: userId={}", userId);
         User user = getUserEntity(userId);
@@ -103,6 +108,7 @@ public class BasicUserService implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     @PreAuthorize("hasRole('ADMIN')")
     public UserDto updateRole(UserRoleUpdateRequestDto request) {
         log.info("사용자 권한 변경 요청: userId={}, newRole={}", request.userId(), request.newRole());
@@ -121,6 +127,7 @@ public class BasicUserService implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public void delete(UUID userId) {
         log.info("사용자 삭제 요청: userId={}", userId);
         User user = getUserEntity(userId);

@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 public class JwtLogoutHandler implements LogoutHandler {
 
     private final JwtRegistry jwtRegistry;
+    private final CacheManager cacheManager;
 
     @Override
     public void logout(HttpServletRequest request,
@@ -32,6 +34,11 @@ public class JwtLogoutHandler implements LogoutHandler {
             log.info("로그아웃: principal={}", authentication.getName());
             if (authentication.getPrincipal() instanceof DiscodeitUserDetails ud) {
                 jwtRegistry.invalidateJwtInformationByUserId(ud.getUserDto().id());
+                // 로그아웃으로 online 상태가 바뀌므로 사용자 목록 캐시 무효화
+                var usersCache = cacheManager.getCache("users");
+                if (usersCache != null) {
+                    usersCache.clear();
+                }
             }
         }
 

@@ -7,6 +7,8 @@ import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,6 +23,7 @@ public class BasicNotificationService implements NotificationService {
     private final NotificationRepository notificationRepository;
 
     @Override
+    @CacheEvict(value = "notifications", key = "#receiverId")
     public NotificationDto create(UUID receiverId, String title, String content) {
         NotificationDto notification = new NotificationDto(
                 UUID.randomUUID(), Instant.now(), receiverId, title, content);
@@ -30,11 +33,13 @@ public class BasicNotificationService implements NotificationService {
     }
 
     @Override
+    @Cacheable(value = "notifications", key = "#receiverId")
     public List<NotificationDto> findAllByReceiverId(UUID receiverId) {
         return notificationRepository.findAllByReceiverId(receiverId);
     }
 
     @Override
+    @CacheEvict(value = "notifications", key = "#requesterId")
     public void delete(UUID notificationId, UUID requesterId) {
         NotificationDto notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException(notificationId));
