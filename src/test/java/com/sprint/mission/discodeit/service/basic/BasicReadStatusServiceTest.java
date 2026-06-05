@@ -136,7 +136,7 @@ class BasicReadStatusServiceTest {
         // given
         UUID readStatusId = UUID.randomUUID();
         Instant specificTime = Instant.now().minusSeconds(60);
-        UpdateReadStatusRequestDto request = new UpdateReadStatusRequestDto(specificTime);
+        UpdateReadStatusRequestDto request = new UpdateReadStatusRequestDto(specificTime, null);
 
         User user = new User("tester", "t@t.com", "pass");
         Channel channel = new Channel(ChannelType.PUBLIC, "ch", "desc");
@@ -160,7 +160,7 @@ class BasicReadStatusServiceTest {
     void update_with_null_time_success() {
         // given
         UUID readStatusId = UUID.randomUUID();
-        UpdateReadStatusRequestDto request = new UpdateReadStatusRequestDto(null);
+        UpdateReadStatusRequestDto request = new UpdateReadStatusRequestDto(null, null);
 
         User user = new User("tester", "t@t.com", "pass");
         Channel channel = new Channel(ChannelType.PUBLIC, "ch", "desc");
@@ -187,7 +187,7 @@ class BasicReadStatusServiceTest {
 
         // when & then
         assertThrows(ReadStatusNotFoundException.class,
-            () -> basicReadStatusService.update(fakeId, new UpdateReadStatusRequestDto(null)));
+            () -> basicReadStatusService.update(fakeId, new UpdateReadStatusRequestDto(null, null)));
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.CreateUserRequestDto;
 import com.sprint.mission.discodeit.dto.UpdateUserRequestDto;
 import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
@@ -62,7 +63,7 @@ class BasicUserServiceTest {
         // given
         CreateUserRequestDto request = new CreateUserRequestDto("tester", "test@test.com", "password123", null);
         User user = new User(request.username(), request.email(), request.password());
-        UserDto expectedDto = new UserDto(user.getId(), user.getUsername(), user.getEmail(), null, true);
+        UserDto expectedDto = new UserDto(user.getId(), user.getUsername(), user.getEmail(), null, Role.USER, true);
 
         // 중복 검사
         given(userRepository.findByUsername(anyString())).willReturn(Optional.empty());
@@ -118,7 +119,7 @@ class BasicUserServiceTest {
         UpdateUserRequestDto request = new UpdateUserRequestDto("newTester", "new@test.com", "newPass123", null);
 
         User user = new User("oldTester", "old@test.com", "oldPass");
-        UserDto expectedDto = new UserDto(user.getId(), request.newUsername(), request.newEmail(), null, true);
+        UserDto expectedDto = new UserDto(user.getId(), request.newUsername(), request.newEmail(), null, Role.USER, true);
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
