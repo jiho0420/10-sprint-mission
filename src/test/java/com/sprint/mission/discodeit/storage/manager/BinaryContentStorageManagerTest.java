@@ -2,7 +2,9 @@ package com.sprint.mission.discodeit.storage.manager;
 
 import com.sprint.mission.discodeit.config.RetryConfig;
 import com.sprint.mission.discodeit.entity.BinaryContentStatus;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.service.NotificationService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,12 @@ class BinaryContentStorageManagerTest {
 
     @MockitoBean
     private BinaryContentService binaryContentService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private NotificationService notificationService;
 
     @Test
     @DisplayName("CP1: 저장 성공 시 put 1회 호출 후 status를 SUCCESS로 갱신한다.")

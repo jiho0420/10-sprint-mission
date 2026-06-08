@@ -56,7 +56,7 @@ class BasicReadStatusServiceTest {
         Channel channel = new Channel(ChannelType.PUBLIC, "ch", "desc");
         ReadStatus readStatus = new ReadStatus(user, channel);
         ReadStatusDto expectedDto =
-            new ReadStatusDto(UUID.randomUUID(), channelId, userId, Instant.now());
+            new ReadStatusDto(UUID.randomUUID(), channelId, userId, Instant.now(), false);
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(channelRepository.findById(channelId)).willReturn(Optional.of(channel));
@@ -142,7 +142,7 @@ class BasicReadStatusServiceTest {
         Channel channel = new Channel(ChannelType.PUBLIC, "ch", "desc");
         ReadStatus readStatus = new ReadStatus(user, channel);
         ReadStatusDto expectedDto =
-            new ReadStatusDto(readStatusId, UUID.randomUUID(), UUID.randomUUID(), specificTime);
+            new ReadStatusDto(readStatusId, UUID.randomUUID(), UUID.randomUUID(), specificTime, false);
 
         given(readStatusRepository.findById(readStatusId)).willReturn(Optional.of(readStatus));
         given(readStatusMapper.toDto(readStatus)).willReturn(expectedDto);
@@ -166,7 +166,7 @@ class BasicReadStatusServiceTest {
         Channel channel = new Channel(ChannelType.PUBLIC, "ch", "desc");
         ReadStatus readStatus = new ReadStatus(user, channel);
         ReadStatusDto expectedDto =
-            new ReadStatusDto(readStatusId, UUID.randomUUID(), UUID.randomUUID(), Instant.now());
+            new ReadStatusDto(readStatusId, UUID.randomUUID(), UUID.randomUUID(), Instant.now(), false);
 
         given(readStatusRepository.findById(readStatusId)).willReturn(Optional.of(readStatus));
         given(readStatusMapper.toDto(readStatus)).willReturn(expectedDto);
@@ -202,7 +202,7 @@ class BasicReadStatusServiceTest {
         given(userRepository.existsById(userId)).willReturn(true);
         given(readStatusRepository.findAllByUserId(userId)).willReturn(List.of(readStatus));
         given(readStatusMapper.toDto(readStatus))
-            .willReturn(new ReadStatusDto(UUID.randomUUID(), UUID.randomUUID(), userId, Instant.now()));
+            .willReturn(new ReadStatusDto(UUID.randomUUID(), UUID.randomUUID(), userId, Instant.now(), false));
 
         // when
         List<ReadStatusDto> results = basicReadStatusService.findAllByUserId(userId);

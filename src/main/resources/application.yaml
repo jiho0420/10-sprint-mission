@@ -66,6 +66,7 @@ management:
           - health
           - loggers
           - metrics
+          - caches
   info:
     env:
       enabled: true
