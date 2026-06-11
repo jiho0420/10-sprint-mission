@@ -119,14 +119,15 @@ class CacheIntegrationTest {
         notificationService.findAllByReceiverId(receiverId);
 
         // then
-        verify(notificationRepository, times(1)).findAllByReceiverId(receiverId);
+        verify(notificationRepository, times(1)).findAllByReceiverIdOrderByCreatedAtAsc(receiverId);
     }
 
     @Test
     @DisplayName("notifications: 알림 생성 시 해당 수신자 캐시가 무효화되어 다음 조회에서 다시 조회한다.")
     void notificationsCache_evictedOnCreate() {
-        // given
-        UUID receiverId = UUID.randomUUID();
+        // given: receiver_id FK 충족을 위해 실제 사용자 생성
+        UUID receiverId = userService.create(new CreateUserRequestDto(
+                "notif-" + UUID.randomUUID(), UUID.randomUUID() + "@test.com", "password123", null)).id();
         notificationService.findAllByReceiverId(receiverId);
 
         // when
@@ -134,6 +135,6 @@ class CacheIntegrationTest {
         notificationService.findAllByReceiverId(receiverId);
 
         // then
-        verify(notificationRepository, times(2)).findAllByReceiverId(receiverId);
+        verify(notificationRepository, times(2)).findAllByReceiverIdOrderByCreatedAtAsc(receiverId);
     }
 }

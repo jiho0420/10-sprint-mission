@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.NotificationDto;
+import com.sprint.mission.discodeit.entity.Notification;
 import com.sprint.mission.discodeit.exception.notification.NotificationForbiddenException;
 import com.sprint.mission.discodeit.exception.notification.NotificationNotFoundException;
+import com.sprint.mission.discodeit.mapper.NotificationMapper;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -29,26 +32,31 @@ class BasicNotificationServiceTest {
     @Mock
     private NotificationRepository notificationRepository;
 
+    @Mock
+    private NotificationMapper notificationMapper;
+
     @InjectMocks
     private BasicNotificationService notificationService;
 
     @Test
-    @DisplayName("알림을 생성하면 수신자/제목/내용이 담긴 DTO를 저장하고 반환한다.")
+    @DisplayName("알림을 생성하면 수신자/제목/내용으로 엔티티를 저장하고 DTO를 반환한다.")
     void create_success() {
         // given
         UUID receiverId = UUID.randomUUID();
-        given(notificationRepository.save(any(NotificationDto.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        Notification saved = new Notification(receiverId, "제목", "내용");
+        UUID id = UUID.randomUUID();
+        ReflectionTestUtils.setField(saved, "id", id);
+        NotificationDto dto = new NotificationDto(id, Instant.now(), receiverId, "제목", "내용");
+
+        given(notificationRepository.save(any(Notification.class))).willReturn(saved);
+        given(notificationMapper.toDto(saved)).willReturn(dto);
 
         // when
         NotificationDto result = notificationService.create(receiverId, "제목", "내용");
 
         // then
-        assertThat(result.receiverId()).isEqualTo(receiverId);
-        assertThat(result.title()).isEqualTo("제목");
-        assertThat(result.content()).isEqualTo("내용");
-        assertThat(result.id()).isNotNull();
-        verify(notificationRepository).save(any(NotificationDto.class));
+        assertThat(result).isEqualTo(dto);
+        verify(notificationRepository).save(any(Notification.class));
     }
 
     @Test
@@ -56,8 +64,11 @@ class BasicNotificationServiceTest {
     void findAllByReceiverId_success() {
         // given
         UUID receiverId = UUID.randomUUID();
+        Notification entity = new Notification(receiverId, "t", "c");
         NotificationDto dto = new NotificationDto(UUID.randomUUID(), Instant.now(), receiverId, "t", "c");
-        given(notificationRepository.findAllByReceiverId(receiverId)).willReturn(List.of(dto));
+        given(notificationRepository.findAllByReceiverIdOrderByCreatedAtAsc(receiverId))
+                .willReturn(List.of(entity));
+        given(notificationMapper.toDto(entity)).willReturn(dto);
 
         // when
         List<NotificationDto> result = notificationService.findAllByReceiverId(receiverId);
@@ -72,14 +83,15 @@ class BasicNotificationServiceTest {
         // given
         UUID requesterId = UUID.randomUUID();
         UUID notificationId = UUID.randomUUID();
-        NotificationDto dto = new NotificationDto(notificationId, Instant.now(), requesterId, "t", "c");
-        given(notificationRepository.findById(notificationId)).willReturn(Optional.of(dto));
+        Notification entity = new Notification(requesterId, "t", "c");
+        ReflectionTestUtils.setField(entity, "id", notificationId);
+        given(notificationRepository.findById(notificationId)).willReturn(Optional.of(entity));
 
         // when
         notificationService.delete(notificationId, requesterId);
 
         // then
-        verify(notificationRepository).deleteById(notificationId);
+        verify(notificationRepository).delete(entity);
     }
 
     @Test
@@ -89,13 +101,13 @@ class BasicNotificationServiceTest {
         UUID ownerId = UUID.randomUUID();
         UUID requesterId = UUID.randomUUID();
         UUID notificationId = UUID.randomUUID();
-        NotificationDto dto = new NotificationDto(notificationId, Instant.now(), ownerId, "t", "c");
-        given(notificationRepository.findById(notificationId)).willReturn(Optional.of(dto));
+        Notification entity = new Notification(ownerId, "t", "c");
+        given(notificationRepository.findById(notificationId)).willReturn(Optional.of(entity));
 
         // when & then
         assertThatThrownBy(() -> notificationService.delete(notificationId, requesterId))
                 .isInstanceOf(NotificationForbiddenException.class);
-        verify(notificationRepository, never()).deleteById(any());
+        verify(notificationRepository, never()).delete(any());
     }
 
     @Test

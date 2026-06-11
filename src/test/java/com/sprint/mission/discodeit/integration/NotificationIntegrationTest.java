@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.integration;
 import com.sprint.mission.discodeit.dto.NotificationDto;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.entity.Role;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.NotificationService;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,14 @@ class NotificationIntegrationTest {
     private MockMvc mockMvc;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private UserRepository userRepository;
+
+    private UUID persistUser() {
+        User user = userRepository.save(
+                new User("user-" + UUID.randomUUID(), UUID.randomUUID() + "@test.com", "pw"));
+        return user.getId();
+    }
 
     private RequestPostProcessor authOf(UUID userId) {
         UserDto userDto = new UserDto(userId, "user-" + userId, userId + "@test.com", null, Role.USER, true);
@@ -45,7 +55,7 @@ class NotificationIntegrationTest {
     @Test
     @DisplayName("인증된 사용자는 본인 알림 목록을 조회한다.")
     void findMine_authenticated_returnsList() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID userId = persistUser();
         notificationService.create(userId, "t1", "c1");
         notificationService.create(userId, "t2", "c2");
 
@@ -64,7 +74,7 @@ class NotificationIntegrationTest {
     @Test
     @DisplayName("본인 알림을 삭제하면 204, 이후 목록에서 사라진다.")
     void delete_ownNotification_returns204() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID userId = persistUser();
         NotificationDto created = notificationService.create(userId, "t", "c");
 
         mockMvc.perform(delete("/api/notifications/{id}", created.id())
@@ -84,7 +94,7 @@ class NotificationIntegrationTest {
     @Test
     @DisplayName("타인의 알림 삭제는 거부된다. (403)")
     void delete_othersNotification_returns403() throws Exception {
-        UUID ownerId = UUID.randomUUID();
+        UUID ownerId = persistUser();
         UUID otherId = UUID.randomUUID();
         NotificationDto created = notificationService.create(ownerId, "t", "c");
 
@@ -96,7 +106,7 @@ class NotificationIntegrationTest {
     @Test
     @DisplayName("존재하지 않는 알림 삭제는 404.")
     void delete_missingNotification_returns404() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID userId = persistUser();
 
         mockMvc.perform(delete("/api/notifications/{id}", UUID.randomUUID())
                         .with(authOf(userId)).with(csrf()))
