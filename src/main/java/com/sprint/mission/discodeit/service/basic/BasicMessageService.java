@@ -23,6 +23,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -51,6 +52,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "channels", allEntries = true)
     public MessageDto create(CreateMessageRequestDto request, List<BinaryContentDto> attachments) {
         log.debug("메시지 생성 요청: channelId={}, authorId={}", request.channelId(), request.authorId());
 
@@ -141,6 +143,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "channels", allEntries = true)
     public void delete(UUID messageId) {
         log.warn("메시지 삭제 요청: messageId={}", messageId);
         Message message = getMessageEntity(messageId);
