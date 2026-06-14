@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,6 +33,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtRegistry jwtRegistry;
     private final CacheManager cacheManager;
+
+    @Value("${discodeit.security.cookie.secure:false}")
+    private boolean cookieSecure;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -62,7 +66,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
         ResponseCookie refreshCookie = ResponseCookie.from(
                         JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                 .httpOnly(true)
-                .secure(false)
+                .secure(cookieSecure)
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(jwtTokenProvider.getRefreshTokenExpirationMinutes() * 60L)

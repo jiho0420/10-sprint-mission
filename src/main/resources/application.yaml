@@ -50,6 +50,9 @@ discodeit:
     key: ${JWT_KEY:discodeit-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256}
     access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:15}      # 기본값: 15분
     refresh-token-expiration-minutes: ${JWT_REFRESH_TOKEN_EXPIRATION_MINUTES:10080} # 기본값: 7일(10080분)
+  security:
+    cookie:
+      secure: ${COOKIE_SECURE:false} # 로컬 기본 false, 운영(HTTPS)에서는 true
 
 springdoc:
   swagger-ui:

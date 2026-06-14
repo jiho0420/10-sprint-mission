@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -22,6 +23,9 @@ public class JwtLogoutHandler implements LogoutHandler {
 
     private final JwtRegistry jwtRegistry;
     private final CacheManager cacheManager;
+
+    @Value("${discodeit.security.cookie.secure:false}")
+    private boolean cookieSecure;
 
     @Override
     public void logout(HttpServletRequest request,
@@ -61,7 +65,7 @@ public class JwtLogoutHandler implements LogoutHandler {
         ResponseCookie expired = ResponseCookie.from(
                         JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME, "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(cookieSecure)
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(0)
