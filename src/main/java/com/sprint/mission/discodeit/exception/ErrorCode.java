@@ -36,7 +36,13 @@ public enum ErrorCode {
     DUPLICATE_READ_STATUS(HttpStatus.BAD_REQUEST, "해당 유저와 채널에 대한 읽음 상태가 이미 존재합니다."),
 
     // Notification Errors
-    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 알림을 찾을 수 없습니다.");
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 알림을 찾을 수 없습니다."),
+
+    // JWT Errors
+    INVALID_JWT_SIGNATURE(HttpStatus.UNAUTHORIZED, "JWT 서명 검증에 실패했습니다."),
+    EXPIRED_JWT(HttpStatus.UNAUTHORIZED, "JWT가 만료되었습니다."),
+    MALFORMED_JWT(HttpStatus.UNAUTHORIZED, "JWT 형식이 올바르지 않습니다."),
+    JWT_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JWT 발급에 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;
