@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.JwtRegistry;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class BasicChannelService implements ChannelService {
     private final ChannelMapper channelMapper;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final JwtRegistry jwtRegistry;
 
     @Override
     @Transactional
@@ -141,7 +143,8 @@ public class BasicChannelService implements ChannelService {
         Map<UUID, List<UserDto>> participantsMap = readStatuses.stream()
                 .collect(Collectors.groupingBy(
                         rs -> rs.getChannel().getId(),
-                        Collectors.mapping(rs -> userMapper.toDto(rs.getUser()), Collectors.toList())
+                        Collectors.mapping(rs -> userMapper.toDto(rs.getUser(),
+                                jwtRegistry.hasActiveJwtInformationByUserId(rs.getUser().getId())), Collectors.toList())
                 ));
 
         Map<UUID, Instant> lastMessageMap = new HashMap<>();

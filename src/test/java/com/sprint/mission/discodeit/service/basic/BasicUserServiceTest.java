@@ -26,7 +26,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +71,7 @@ class BasicUserServiceTest {
         given(userRepository.findByUsername(anyString())).willReturn(Optional.empty());
         given(userRepository.existsByEmail(anyString())).willReturn(false);
 
-        given(userMapper.toDto(any(User.class))).willReturn(expectedDto);
+        given(userMapper.toDto(any(User.class), anyBoolean())).willReturn(expectedDto);
 
         // when
         UserDto result = basicUserService.create(request);
@@ -123,7 +125,7 @@ class BasicUserServiceTest {
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
-        given(userMapper.toDto(user)).willReturn(expectedDto);
+        given(userMapper.toDto(eq(user), anyBoolean())).willReturn(expectedDto);
 
         // when
         UserDto result = basicUserService.update(userId, request);

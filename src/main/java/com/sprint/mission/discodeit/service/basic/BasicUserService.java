@@ -66,26 +66,30 @@ public class BasicUserService implements UserService {
         userStatusRepository.save(status);
 
         log.info("사용자 가입 성공: userId={}", user.getId());
-        return userMapper.toDto(user);
+        return userMapper.toDto(user, isOnline(user));
     }
 
     @Override
     public Optional<UserDto> findById(UUID userId) {
         return userRepository.findById(userId)
-                .map(userMapper::toDto);
+                .map(user -> userMapper.toDto(user, isOnline(user)));
+    }
+
+    private boolean isOnline(User user) {
+        return jwtRegistry.hasActiveJwtInformationByUserId(user.getId());
     }
 
     @Override
     public UserDto find(UUID userId) {
         User user = getUserEntity(userId);
-        return userMapper.toDto(user);
+        return userMapper.toDto(user, isOnline(user));
     }
 
     @Override
     @Cacheable("users")
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(userMapper::toDto)
+                .map(user -> userMapper.toDto(user, isOnline(user)))
                 .toList();
     }
 
@@ -103,7 +107,7 @@ public class BasicUserService implements UserService {
         }
 
         log.info("사용자 정보 수정 완료: userId={}", user.getId());
-        return userMapper.toDto(user);
+        return userMapper.toDto(user, isOnline(user));
     }
 
     @Override
@@ -122,7 +126,7 @@ public class BasicUserService implements UserService {
         // 권한 변경 당사자에게 알림을 생성하기 위한 이벤트 발행
         eventPublisher.publishEvent(new RoleUpdatedEvent(user.getId(), previousRole, request.newRole()));
 
-        return userMapper.toDto(user);
+        return userMapper.toDto(user, isOnline(user));
     }
 
     @Override
