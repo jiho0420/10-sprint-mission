@@ -8,6 +8,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,15 @@ public class JwtTokenProvider {
     @Getter
     @Value("${discodeit.jwt.refresh-token-expiration-minutes}")
     private int refreshTokenExpirationMinutes;
+
+    // HS256 서명에는 최소 256비트(32바이트) 키가 필요하다. 짧은/빈 키를 첫 로그인이 아닌 기동 시점에 차단한다.
+    @PostConstruct
+    public void validateSecretKey() {
+        if (secretKey == null || secretKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "JWT 서명 키(discodeit.jwt.key)는 HS256을 위해 최소 32바이트(256비트) 이상이어야 합니다.");
+        }
+    }
 
     public String generateAccessToken(Map<String, Object> claims, String subject) {
         try {
