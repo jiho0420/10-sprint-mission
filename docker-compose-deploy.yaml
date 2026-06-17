@@ -1,6 +1,8 @@
 services:
   proxy:
-    build: ./nginx
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     container_name: discodeit-proxy
     ports:
       - "3000:80"           # 외부 접근 가능한 유일 포트
