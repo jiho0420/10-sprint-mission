@@ -10,7 +10,6 @@ import com.sprint.mission.discodeit.event.NotificationCreatedEvent;
 import com.sprint.mission.discodeit.event.UserChangedEvent;
 import com.sprint.mission.discodeit.event.kafka.KafkaTopics;
 import com.sprint.mission.discodeit.event.kafka.SseFanoutMessage;
-import com.sprint.mission.discodeit.service.SseService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class SseRequiredEventListener {
 
-    private final SseService sseService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
@@ -44,7 +42,7 @@ public class SseRequiredEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(BinaryContentStatusUpdatedEvent event) {
-        sseService.broadcast("binaryContents.updated", event.dto());
+        publishFanout(new SseFanoutMessage("binaryContents.updated", event.dto(), null));
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -52,16 +50,15 @@ public class SseRequiredEventListener {
         ChannelDto channel = event.dto();
         String eventName = "channels." + event.action();
         if (channel.type() == ChannelType.PUBLIC) {
-            sseService.broadcast(eventName, channel);
+            publishFanout(new SseFanoutMessage(eventName, channel, null));
         } else {
-            sseService.send(
-                    channel.participants().stream().map(UserDto::id).toList(),
-                    eventName, channel);
+            publishFanout(new SseFanoutMessage(eventName, channel,
+                    channel.participants().stream().map(UserDto::id).toList()));
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UserChangedEvent event) {
-        sseService.broadcast("users." + event.action(), event.dto());
+        publishFanout(new SseFanoutMessage("users." + event.action(), event.dto(), null));
     }
 }
